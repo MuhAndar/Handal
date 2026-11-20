@@ -11,14 +11,21 @@ use App\Http\Controllers\Validator\ValidatorController;
 use App\Http\Controllers\School\DashboardController;
 use App\Http\Controllers\School\SurveyController;
 use App\Http\Controllers\School\ProfileController;
+use App\Http\Controllers\StudentSurveyController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
+Route::get('/landing-v2', [LandingController::class, 'indexV2'])->name('landing.v2');
 
 Route::get('/pengajuan-akun', [LandingController::class, 'registrationPage'])->name('registration.page');
 Route::post('/register-school', [LandingController::class, 'storeRegistration'])->name('register.store');
 
 Route::get('/ranking-sekolah', [LandingController::class, 'rankingPage'])->name('ranking.page');
+Route::get('/ranking-v2', [LandingController::class, 'rankingPageV2'])->name('ranking.page.v2');
+
+// === Rute Publik Survei Siswa (Tanpa Login) ===
+Route::get('/survey-siswa/{code}', [StudentSurveyController::class, 'show'])->name('student.survey.show');
+Route::post('/survey-siswa/{code}', [StudentSurveyController::class, 'store'])->name('student.survey.store');
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
@@ -42,6 +49,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        // Kontrol Survei Siswa (Buka/Tutup & Generate Ulang Tautan)
+        Route::post('/survey-siswa/toggle', [StudentSurveyController::class, 'toggleStatus'])->name('student.survey.toggle');
+        Route::post('/survey-siswa/regenerate', [StudentSurveyController::class, 'regenerateCode'])->name('student.survey.regenerate');
     });
 
     Route::middleware(['role:validator'])->prefix('validator')->name('validator.')->group(function () {

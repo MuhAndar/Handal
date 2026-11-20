@@ -185,6 +185,128 @@
             </div>
         </div>
 
+        {{-- KARTU GENERATOR SURVEI SISWA (BOBOT 30%) --}}
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-10 overflow-hidden"
+             x-data="{ copied: false, showQr: false }">
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-100">
+                <div class="flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-2xl flex-shrink-0 shadow-inner">
+                        <i class="bi bi-qr-code-scan"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                            <span class="px-3 py-0.5 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold uppercase tracking-wider">
+                                Instrumen Survei Siswa (30%)
+                            </span>
+                            @if ($school->is_student_survey_open)
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold flex items-center gap-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Dibuka
+                                </span>
+                            @else
+                                <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-xs font-semibold">
+                                    <i class="bi bi-lock-fill mr-1"></i> Ditutup
+                                </span>
+                            @endif
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800">Tautan & QR Code Survei Siswa</h3>
+                        <p class="text-slate-500 text-sm mt-0.5">
+                            Bagikan tautan atau tampilkan QR Code kuesioner skala Likert untuk diisi oleh siswa sekolah Anda.
+                        </p>
+                    </div>
+                </div>
+
+                {{-- TOMBOL KONTROL STATUS --}}
+                <div class="flex items-center gap-3">
+                    <form action="{{ route('school.student.survey.toggle') }}" method="POST">
+                        @csrf
+                        <button type="submit"
+                            class="px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 shadow-sm
+                            {{ $school->is_student_survey_open
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+                                : 'bg-emerald-600 text-white hover:bg-emerald-700' }}">
+                            <i class="bi {{ $school->is_student_survey_open ? 'bi-pause-circle' : 'bi-play-circle-fill' }}"></i>
+                            {{ $school->is_student_survey_open ? 'Tutup Akses Survei' : 'Buka Akses Survei' }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {{-- STATISTIK PARTISIPASI SISWA --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 py-6 border-b border-slate-100">
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Partisipasi Siswa</span>
+                    <span class="text-2xl font-black text-slate-800">{{ $school->student_respondents_count }}</span>
+                    <span class="text-xs text-slate-500 block mt-0.5">Responden</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100">
+                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">Skor Survei Siswa</span>
+                    <span class="text-2xl font-black text-indigo-600">{{ number_format($school->student_survey_score, 1) }}</span>
+                    <span class="text-xs text-indigo-500 block mt-0.5">Skala 0 - 100</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">Asesmen Mandiri</span>
+                    <span class="text-2xl font-black text-blue-600">{{ number_format($school->self_assessment_score, 1) }}</span>
+                    <span class="text-xs text-blue-500 block mt-0.5">Bobot 70%</span>
+                </div>
+
+                <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+                    <span class="text-xs font-bold text-emerald-500 uppercase tracking-wider block mb-1">Skor Komposit Akhir</span>
+                    <span class="text-2xl font-black text-emerald-700">{{ number_format($school->current_score, 1) }}</span>
+                    <span class="text-xs text-emerald-600 block mt-0.5">Indeks HANDAL</span>
+                </div>
+            </div>
+
+            {{-- BOX LINK & QR CODE GENERATOR --}}
+            <div class="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+                <div class="md:col-span-2 space-y-3">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Tautan Publik Kuesioner Siswa:
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" readonly
+                            id="surveyUrlInput"
+                            value="{{ route('student.survey.show', $school->survey_code) }}"
+                            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono text-slate-700 selection:bg-indigo-500 selection:text-white">
+                        
+                        <button type="button"
+                            @click="navigator.clipboard.writeText('{{ route('student.survey.show', $school->survey_code) }}'); copied = true; setTimeout(() => copied = false, 2500)"
+                            class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs sm:text-sm transition-all flex items-center gap-2 shadow-sm flex-shrink-0">
+                            <i class="bi" :class="copied ? 'bi-check2' : 'bi-clipboard'"></i>
+                            <span x-text="copied ? 'Tersalin!' : 'Salin Tautan'"></span>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-3 pt-1">
+                        <button type="button" @click="showQr = !showQr"
+                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5">
+                            <i class="bi bi-qr-code"></i>
+                            <span x-text="showQr ? 'Sembunyikan QR Code' : 'Tampilkan / Cetak QR Code'"></span>
+                        </button>
+                        <span class="text-slate-300">&bull;</span>
+                        <a href="{{ route('student.survey.show', $school->survey_code) }}" target="_blank"
+                            class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1">
+                            <i class="bi bi-box-arrow-up-right"></i> Buka Kuesioner di Tab Baru
+                        </a>
+                    </div>
+                </div>
+
+                {{-- QR CODE DISPLAY --}}
+                <div class="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100"
+                     x-show="showQr" x-transition>
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-2">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode(route('student.survey.show', $school->survey_code)) }}"
+                             alt="QR Code Survei Siswa" class="w-32 h-32 object-contain">
+                    </div>
+                    <span class="text-[11px] font-bold text-slate-600 text-center">Scan untuk Mengisi</span>
+                    <span class="text-[10px] text-slate-400 text-center">Cocok ditampilkan di layar proyektor kelas</span>
+                </div>
+            </div>
+
+        </div>
+
         {{-- TABEL RIWAYAT EVALUASI --}}
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
 

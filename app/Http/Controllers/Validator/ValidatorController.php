@@ -109,11 +109,15 @@ class ValidatorController extends Controller
         }
 
         $finalScore = ($maxPossibleScore > 0) ? ($totalObtainedScore / $maxPossibleScore) * 100 : 0;
+        $finalScore = round($finalScore, 2);
 
         $survey->update(['total_score' => $finalScore]);
         if ($survey->school) {
-            $survey->school->update(['current_score' => $finalScore]);
+            $survey->school->self_assessment_score = $finalScore;
+            $survey->school->recalculateOverallScore();
         }
+
+        \Illuminate\Support\Facades\Cache::forget('school_rankings');
     }
 
     public function show($id)

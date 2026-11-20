@@ -1,6 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
+    {{-- LEAFLET CSS & JS UNTUK PETA INTERAKTIF --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <div class="relative w-full overflow-hidden">
 
         <div class="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-slate-50 -z-30"></div>
@@ -127,6 +131,85 @@
                     <a href="{{ route('ranking.page') }}"
                         class="inline-flex items-center font-bold text-emerald-600 hover:gap-3 transition-all">Lihat
                         Leaderboard <i class="bi bi-arrow-right ml-2"></i></a>
+                </div>
+            </div>
+
+            {{-- ========================================================= --}}
+            {{-- SEKSI PETA SEBARAN SEKOLAH AMAN DIGITAL (LEAFLET PRESISI) --}}
+            {{-- ========================================================= --}}
+            <div class="max-w-6xl mx-auto mb-28">
+                <div class="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden p-6 md:p-8">
+                    
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold mb-2">
+                                <i class="bi bi-geo-alt-fill text-rose-500"></i> Pemetaan Geografis Digital
+                            </div>
+                            <h3 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">
+                                Peta Sebaran Sekolah Aman Digital
+                            </h3>
+                            <p class="text-slate-500 text-sm mt-1">
+                                Batas administratif resmi Provinsi Sulawesi Selatan & titik koordinat sekolah terverifikasi di Kota Makassar.
+                            </p>
+                        </div>
+
+                        <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-semibold text-slate-600 self-start md:self-auto">
+                            <button type="button" id="btn-focus-makassar-landing" class="px-3.5 py-2 rounded-lg bg-white text-slate-900 shadow-xs font-bold transition-all">
+                                Kota Makassar
+                            </button>
+                            <button type="button" id="btn-focus-sulsel-landing" class="px-3.5 py-2 rounded-lg hover:text-slate-900 transition-all">
+                                Provinsi Sulsel
+                            </button>
+                            <button type="button" id="btn-focus-indo-landing" class="px-3.5 py-2 rounded-lg hover:text-slate-900 transition-all">
+                                Seluruh Nusantara
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative w-full h-[480px] bg-slate-100 rounded-3xl overflow-hidden border border-slate-200 shadow-inner">
+                        <div id="landing-map-container" class="w-full h-full z-10"></div>
+
+                        {{-- LEGENDA INDEKS KEAMANAN --}}
+                        <div class="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200/90 shadow-lg text-xs max-w-[230px]">
+                            <div class="font-bold text-slate-800 mb-2 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                                <i class="bi bi-shield-check text-blue-600"></i> Tingkat Kesiapan
+                            </div>
+                            <div class="space-y-1.5 text-[11px]">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-500 shadow-xs flex-shrink-0"></span>
+                                    <span class="text-slate-700 font-medium">Unggul Digital (&ge; 86)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-blue-600 shadow-xs flex-shrink-0"></span>
+                                    <span class="text-slate-700 font-medium">Maju (76 - 85)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-amber-500 shadow-xs flex-shrink-0"></span>
+                                    <span class="text-slate-700 font-medium">Berkembang (51 - 75)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-slate-400 shadow-xs flex-shrink-0"></span>
+                                    <span class="text-slate-700 font-medium">Pemula / Rintisan (&lt; 51)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- BADGE INFO WILAYAH AKTIF --}}
+                        <div class="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200/90 shadow-sm flex items-center gap-3">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <div class="text-xs">
+                                <span class="font-bold text-slate-800">Sulawesi Selatan &bull; Makassar</span>
+                                <span class="text-slate-500 block text-[10px]">{{ count($mapLocations) }} Sekolah Terdaftar</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
+                        <span><i class="bi bi-info-circle mr-1"></i> Klik marker pin pada peta untuk melihat profil skor lengkap dan alamat sekolah.</span>
+                        <a href="{{ route('ranking.page') }}" class="font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                            Lihat Seluruh Peringkat Sekolah &rarr;
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -275,4 +358,197 @@
                     </div>
                 </div>
             </div>
-        @endsection
+        </div>
+    </div>
+
+    {{-- SCRIPT PETA INTERAKTIF LANDING DENGAN BATAS SULSEL RESMI & KOORDINAT GOOGLE MAPS --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const locations = @json($mapLocations);
+
+            // Koordinat fokus
+            const makassarCenter = [-5.1450, 119.4400];
+            const sulselCenter = [-4.0500, 120.1000];
+
+            const map = L.map('landing-map-container', {
+                center: makassarCenter,
+                zoom: 12,
+                minZoom: 4,
+                maxZoom: 18,
+                zoomControl: true
+            });
+
+            // Pastikan dimensi peta terhitung sempurna setelah render
+            setTimeout(() => {
+                map.invalidateSize();
+            }, 250);
+
+            // Layer Esri Light Gray Canvas (Bersih, Free & Tanpa API Key)
+            const esriGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &bull; HANDAL Kemkomdigi',
+                maxZoom: 16
+            }).addTo(map);
+
+            const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '',
+                maxZoom: 16
+            }).addTo(map);
+
+            const osmStandard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors &bull; HANDAL',
+                maxZoom: 19
+            });
+
+            const baseMaps = {
+                "Kanvas Bersih": L.layerGroup([esriGray, esriLabels]),
+                "OpenStreetMap": osmStandard
+            };
+            L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
+
+            let sulselLayer = null;
+
+            // 1. LOAD GEOJSON RESMI SULAWESI SELATAN (24 KAB/KOTA TANPA SULBAR)
+            fetch('{{ asset("data/sulsel_accurate.geojson") }}')
+                .then(res => res.json())
+                .then(geoData => {
+                    sulselLayer = L.geoJSON(geoData, {
+                        style: function (feature) {
+                            const isMakassar = (feature.properties.name || '').toUpperCase().includes('MAKASSAR');
+                            if (isMakassar) {
+                                return {
+                                    fillColor: '#0284c7',
+                                    fillOpacity: 0.28,
+                                    color: '#0284c7',
+                                    weight: 2.5,
+                                    opacity: 1
+                                };
+                            }
+                            return {
+                                fillColor: '#38bdf8',
+                                fillOpacity: 0.12,
+                                color: '#0284c7',
+                                weight: 1.5,
+                                opacity: 0.8
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            const kabName = feature.properties.name || feature.properties.KABKOT || 'Wilayah';
+                            const isMakassar = kabName.toUpperCase().includes('MAKASSAR');
+                            if (isMakassar) {
+                                layer.bindTooltip(`<strong>${kabName} (Sulawesi Selatan)</strong><br><span style="color:#0284c7;font-weight:700;">Wilayah Pusat Pengujian</span> &bull; ${locations.length} Sekolah`, { sticky: true });
+                            } else {
+                                layer.bindTooltip(`<strong>${kabName}</strong><br>Provinsi Sulawesi Selatan`, { sticky: true });
+                            }
+                        }
+                    }).addTo(map);
+
+                    sulselLayer.bringToBack();
+                })
+                .catch(err => {
+                    console.warn('Gagal memuat batas resmi Sulsel:', err);
+                });
+
+            // 2. TAMPILKAN PIN SEKOLAH DENGAN KOORDINAT GOOGLE MAPS PRESISI
+            locations.forEach((school) => {
+                let pinColor = '#3b82f6';
+                if (school.score >= 86) pinColor = '#06b6d4';
+                else if (school.score >= 76) pinColor = '#2563eb';
+                else if (school.score >= 51) pinColor = '#f59e0b';
+                else pinColor = '#ef4444';
+
+                const iconHtml = `
+                    <div style="position: relative; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;">
+                        <span style="position: absolute; width: 30px; height: 30px; border-radius: 50%; background-color: ${pinColor}; opacity: 0.3; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+                        <div style="width: 24px; height: 24px; border-radius: 50%; background-color: ${pinColor}; border: 2.5px solid #ffffff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 800;">
+                            ${school.jenjang.substring(0, 2)}
+                        </div>
+                    </div>
+                `;
+
+                const customIcon = L.divIcon({
+                    html: iconHtml,
+                    className: 'landing-school-marker',
+                    iconSize: [34, 34],
+                    iconAnchor: [17, 17],
+                    popupAnchor: [0, -17]
+                });
+
+                const marker = L.marker([school.lat, school.lng], { icon: customIcon }).addTo(map);
+
+                const popupContent = `
+                    <div style="font-family: inherit; min-width: 230px; padding: 4px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="background: #eff6ff; color: #1d4ed8; font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px;">
+                                ${school.jenjang} &bull; NPSN: ${school.npsn || '-'}
+                            </span>
+                            <span style="font-size: 11px; font-weight: 800; color: #047857; background: #ecfdf5; padding: 2px 6px; border-radius: 6px;">
+                                Skor: ${Number(school.score).toFixed(1)}
+                            </span>
+                        </div>
+                        <h4 style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 4px 0; line-height: 1.25;">${school.name}</h4>
+                        
+                        <div style="font-size: 11px; color: #64748b; margin-bottom: 8px; line-height: 1.35; display: flex; gap: 4px;">
+                            <i class="bi bi-geo-alt-fill" style="color: #ef4444; margin-top: 1px;"></i>
+                            <span>${school.address || school.city}</span>
+                        </div>
+
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 8px; margin-bottom: 8px; font-size: 11px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                <span style="color: #64748b;">Asesmen Mandiri (70%):</span>
+                                <strong style="color: #0f172a;">${Number(school.self_score).toFixed(1)}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #64748b;">Survei Siswa (30%):</span>
+                                <strong style="color: #4338ca;">${Number(school.student_score).toFixed(1)} (${school.respondents} Siswa)</strong>
+                            </div>
+                        </div>
+
+                        <a href="{{ route('ranking.page') }}" 
+                            style="display: block; text-align: center; background: #2563eb; color: white; text-decoration: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700;">
+                            Buka di Leaderboard &rarr;
+                        </a>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                marker.bindTooltip(`<strong>${school.name}</strong><br><span style="font-size:10px;color:#64748b;">${school.address}</span>`, {
+                    direction: 'top',
+                    offset: [0, -14]
+                });
+            });
+
+            // Tombol Interaksi Peta
+            const btnMakassar = document.getElementById('btn-focus-makassar-landing');
+            const btnSulsel = document.getElementById('btn-focus-sulsel-landing');
+            const btnIndo = document.getElementById('btn-focus-indo-landing');
+
+            function setActiveButton(btn) {
+                [btnMakassar, btnSulsel, btnIndo].forEach(b => {
+                    b.classList.remove('bg-white', 'text-slate-900', 'shadow-xs', 'font-bold');
+                    b.classList.add('text-slate-600');
+                });
+                btn.classList.add('bg-white', 'text-slate-900', 'shadow-xs', 'font-bold');
+                btn.classList.remove('text-slate-600');
+            }
+
+            btnMakassar.addEventListener('click', function () {
+                setActiveButton(this);
+                map.flyTo(makassarCenter, 12, { duration: 1.2 });
+            });
+
+            btnSulsel.addEventListener('click', function () {
+                setActiveButton(this);
+                if (sulselLayer) {
+                    map.fitBounds(sulselLayer.getBounds(), { padding: [30, 30], duration: 1.2 });
+                } else {
+                    map.flyTo(sulselCenter, 7, { duration: 1.2 });
+                }
+            });
+
+            btnIndo.addEventListener('click', function () {
+                setActiveButton(this);
+                map.flyTo([-2.5489, 118.0149], 5, { duration: 1.4 });
+            });
+        });
+    </script>
+@endsection

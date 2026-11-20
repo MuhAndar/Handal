@@ -119,12 +119,15 @@ class SurveyController extends Controller
         }
     }
 
-    // 4. Logika Hitung Skor
+    // 4. Logika Hitung Skor Asesmen Mandiri (Optimasi Query & Pembobotan 70%-30%)
     private function calculateFinalScore(Survey $survey)
     {
         $totalObtainedScore = 0;
         $maxPossibleScore = 0;
         $categories = SurveyCategory::with('questions.options')->get();
+
+        // Ambil semua jawaban dalam 1 kueri terindeks (mencegah N+1 query)
+        $answers = SurveyAnswer::where('survey_id', $survey->id)->get()->keyBy('question_id');
 
         foreach ($categories as $category) {
             foreach ($category->questions as $question) {
@@ -134,29 +137,28 @@ class SurveyController extends Controller
 
                 $maxPossibleScore += $maxQuestionScore;
 
-                $answer = SurveyAnswer::where('survey_id', $survey->id)
-                    ->where('question_id', $question->id)
-                    ->first();
-
-                if ($answer) {
-                    $selectedOption = $question->options->where('id', $answer->answer_value)->first();
+                if (isset($answers[$question->id])) {
+                    $selectedOption = $question->options->where('id', $answers[$question->id]->answer_value)->first();
                     if ($selectedOption) {
                         $totalObtainedScore += $selectedOption->score_value;
                     }
                 }
             }
         }
-        if ($maxPossibleScore > 0) {
-            $finalScore = ($totalObtainedScore / $maxPossibleScore) * 100;
-        } else {
-            $finalScore = 0;
-        }
+
+        $selfScore = ($maxPossibleScore > 0) ? ($totalObtainedScore / $maxPossibleScore) * 100 : 0;
+        $selfScore = round($selfScore, 2);
+
         $survey->update([
-            'total_score' => $finalScore,
+            'total_score' => $selfScore,
             'status' => 'submitted'
         ]);
 
-        $survey->school->update(['current_score' => $finalScore]);
+        if ($survey->school) {
+            $survey->school->self_assessment_score = $selfScore;
+            $survey->school->recalculateOverallScore();
+        }
+
         Cache::forget('school_rankings');
     }
 
