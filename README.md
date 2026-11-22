@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  Inisiatif Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBPSDM Komdigi) Makassar<br>
+  Inisiatif Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBLSDM Komdigi) Makassar<br>
   Kementerian Komunikasi dan Digital Republik Indonesia
 </p>
 
@@ -138,7 +138,7 @@ php artisan serve
 
 ## 🏛️ Kredit & Pembimbing
 
-Proyek ini dikembangkan dalam naungan **Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBPSDM Komdigi) Makassar**.
+Proyek ini dikembangkan dalam naungan **Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBLSDM Komdigi) Makassar**.
 
 * **Pembimbing:** Muh. Andar Sugianto, S.T.
 * **Tim Pengembang:**
@@ -150,5 +150,5 @@ Proyek ini dikembangkan dalam naungan **Balai Besar Pengembangan SDM dan Penelit
 ---
 
 <p align="center">
-  &copy; 2026 HANDAL Sekolah Aman Digital — BBPSDM Komdigi Makassar
+  &copy; 2026 HANDAL Sekolah Aman Digital — BBLSDM Komdigi Makassar
 </p>

@@ -12,10 +12,12 @@ use App\Http\Controllers\School\DashboardController;
 use App\Http\Controllers\School\SurveyController;
 use App\Http\Controllers\School\ProfileController;
 use App\Http\Controllers\StudentSurveyController;
+use App\Http\Controllers\SpeedCodingController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', [LandingController::class, 'index'])->name('landing');
 Route::get('/landing-v2', [LandingController::class, 'indexV2'])->name('landing.v2');
+Route::get('/speed-coding', [SpeedCodingController::class, 'index'])->name('speed.coding');
 
 Route::get('/pengajuan-akun', [LandingController::class, 'registrationPage'])->name('registration.page');
 Route::post('/register-school', [LandingController::class, 'storeRegistration'])->name('register.store');

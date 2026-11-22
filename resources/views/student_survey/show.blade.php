@@ -191,7 +191,7 @@
 
     {{-- FOOTER SEDERHANA --}}
     <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-100 bg-white">
-        &copy; {{ date('Y') }} HANDAL &bull; BBPSDM Komdigi Makassar
+        &copy; {{ date('Y') }} HANDAL &bull; BBLSDM Komdigi Makassar
     </footer>
 
 </body>

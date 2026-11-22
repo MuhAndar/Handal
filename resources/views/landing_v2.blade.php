@@ -177,7 +177,7 @@
                             <div class="flex flex-wrap items-center gap-y-1 gap-x-3 mt-3 text-xs text-slate-400">
                                 <span><i class="bi bi-clock-history mr-1"></i> Data: Tahun Ajaran 2025/2026</span>
                                 <span>&bull;</span>
-                                <span><i class="bi bi-patch-check mr-1"></i> Standar Resmi BBPSDM Komdigi Makassar</span>
+                                <span><i class="bi bi-patch-check mr-1"></i> Standar Resmi BBLSDM Komdigi Makassar</span>
                                 <span>&bull;</span>
                                 <span class="text-slate-600 font-semibold">{{ $stats['total_schools'] }} Sekolah &bull; {{ $stats['total_students'] }} Responden Siswa</span>
                             </div>
@@ -308,12 +308,12 @@
                                 </div>
                             </div>
 
-                            {{-- BADGE INFO WILAYAH TERPILIH --}}
-                            <div class="absolute top-4 right-4 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-2.5">
-                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                <div class="text-xs">
-                                    <span class="font-bold text-slate-800">Sulawesi Selatan</span>
-                                    <span class="text-slate-400 block text-[10px]">{{ $stats['total_schools'] }} Sekolah Terpetakan</span>
+                            {{-- BADGE INFO WILAYAH TERPILIH (Di kiri atas samping tombol zoom agar tidak menghalangi tombol layer switcher di kanan atas) --}}
+                            <div id="v2-map-active-region-badge" class="absolute top-3 left-14 z-20 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-200/80 shadow-sm flex items-center gap-2.5 max-w-[280px] pointer-events-none transition-all">
+                                <span id="v2-badge-region-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
+                                <div class="text-xs truncate">
+                                    <span id="v2-badge-region-name" class="font-bold text-slate-800 block truncate">Kota Makassar</span>
+                                    <span id="v2-badge-region-info" class="text-slate-500 block text-[10px] truncate">{{ count($mapLocations) }} Sekolah Terdaftar (Pusat Pengujian)</span>
                                 </div>
                             </div>
                         </div>
@@ -455,7 +455,7 @@
                                 Definisi & Metodologi Evaluasi HANDAL
                             </h2>
                             <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                                Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBPSDM Komdigi) Makassar.
+                                Balai Besar Pengembangan SDM dan Penelitian Komunikasi dan Digital (BBLSDM Komdigi) Makassar.
                             </p>
                         </div>
 
@@ -580,63 +580,152 @@
             }, 250);
 
             // Layer 1: Esri Light Gray Canvas (Elegan ala WPR, 100% Free & Tanpa API Key)
+            // Menggunakan maxNativeZoom: 16 dan maxZoom: 18 agar saat zoom mendalam (17-18)
+            // Leaflet tetap mempertahankan dan memperbesar ubin peta, bukan menghilangkannya.
             const esriGray = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri &bull; HANDAL Kemkomdigi',
-                maxZoom: 16
+                minZoom: 4,
+                maxZoom: 18,
+                maxNativeZoom: 16
             }).addTo(map);
 
             const esriLabels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
                 attribution: '',
-                maxZoom: 16
+                minZoom: 4,
+                maxZoom: 18,
+                maxNativeZoom: 16
             }).addTo(map);
 
             // Layer 2: OpenStreetMap Standar
             const osmStandard = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors &bull; HANDAL',
+                minZoom: 4,
                 maxZoom: 19
             });
 
             // Layer Switcher di pojok kanan atas
             const baseMaps = {
-                "Kanvas Bersih": L.layerGroup([esriGray, esriLabels]),
-                "OpenStreetMap": osmStandard
+                "Kanvas Bersih (Esri)": L.layerGroup([esriGray, esriLabels]),
+                "Peta Jalan Detil (OSM)": osmStandard
             };
             L.control.layers(baseMaps, null, { position: 'topright' }).addTo(map);
 
             let sulselLayerGroup = null;
+
+            // State & fungsi pembaruan badge wilayah aktif (kiri atas samping tombol zoom)
+            let currentBadgeState = {
+                name: 'Kota Makassar',
+                info: `${locations.length} Sekolah Terdaftar (Pusat Pengujian)`,
+                type: 'active'
+            };
+
+            function updateRegionBadge(name, info, type = 'active') {
+                const dot = document.getElementById('v2-badge-region-dot');
+                const nameEl = document.getElementById('v2-badge-region-name');
+                const infoEl = document.getElementById('v2-badge-region-info');
+                if (!dot || !nameEl || !infoEl) return;
+
+                nameEl.textContent = name;
+                infoEl.textContent = info;
+
+                dot.className = 'w-2.5 h-2.5 rounded-full flex-shrink-0 transition-all';
+                if (type === 'active') {
+                    dot.classList.add('bg-emerald-500', 'animate-pulse');
+                } else if (type === 'info') {
+                    dot.classList.add('bg-blue-500');
+                } else if (type === 'inactive') {
+                    dot.classList.add('bg-slate-400');
+                } else if (type === 'school') {
+                    dot.classList.add('bg-indigo-600', 'animate-pulse');
+                }
+            }
+
+            function restoreRegionBadge() {
+                updateRegionBadge(currentBadgeState.name, currentBadgeState.info, currentBadgeState.type);
+            }
+
+            // Fungsi pewarnaan dinamis poligon wilayah:
+            // Pada zoom jauh (provinsi), fill terlihat untuk mempertegas batas wilayah.
+            // Saat zoom mendekati kota/jalan (zoom >= 13), transparansi fill otomatis diturunkan
+            // agar pengguna dapat melihat jaringan jalan dan lokasi sekolah dengan jelas tanpa tertutup warna biru pekat.
+            function getSulselStyle(feature, currentZoom) {
+                const z = currentZoom !== undefined ? currentZoom : map.getZoom();
+                const isMakassar = (feature.properties.name || '').toUpperCase().includes('MAKASSAR');
+
+                let fillOp = 0.10;
+                if (z >= 14) {
+                    fillOp = 0.02; // nyaris transparan saat zoom dekat ke sekolah/jalan
+                } else if (z >= 12) {
+                    fillOp = isMakassar ? 0.08 : 0.04;
+                } else {
+                    fillOp = isMakassar ? 0.22 : 0.10;
+                }
+
+                return {
+                    fillColor: isMakassar ? '#0284c7' : '#38bdf8',
+                    fillOpacity: fillOp,
+                    color: '#0284c7',
+                    weight: isMakassar ? (z >= 14 ? 1.5 : 2.5) : 1.2,
+                    opacity: z >= 14 ? 0.45 : 0.85
+                };
+            }
+
+            // Perbarui transparansi poligon saat tingkat zoom berubah
+            map.on('zoomend', function () {
+                if (sulselLayerGroup) {
+                    sulselLayerGroup.setStyle(feature => getSulselStyle(feature, map.getZoom()));
+                }
+            });
 
             // 1. LOAD GEOJSON RESMI SULAWESI SELATAN (24 KAB/KOTA TANPA SULBAR)
             fetch('{{ asset("data/sulsel_accurate.geojson") }}')
                 .then(response => response.json())
                 .then(geojsonData => {
                     sulselLayerGroup = L.geoJSON(geojsonData, {
-                        style: function (feature) {
-                            const isMakassar = (feature.properties.name || '').toUpperCase().includes('MAKASSAR');
-                            if (isMakassar) {
-                                return {
-                                    fillColor: '#0284c7',
-                                    fillOpacity: 0.28,
-                                    color: '#0284c7',
-                                    weight: 2.5,
-                                    opacity: 1
-                                };
-                            }
-                            return {
-                                fillColor: '#38bdf8',
-                                fillOpacity: 0.12,
-                                color: '#0284c7',
-                                weight: 1.5,
-                                opacity: 0.85
-                            };
-                        },
+                        style: feature => getSulselStyle(feature, map.getZoom()),
                         onEachFeature: function (feature, layer) {
-                            const kabName = feature.properties.name || feature.properties.KABKOT || 'Wilayah';
-                            const isMakassar = kabName.toUpperCase().includes('MAKASSAR');
+                            const rawName = feature.properties.name || feature.properties.KABKOT || 'Wilayah';
+                            const kabName = rawName.replace(/^KABUPATEN\s+/i, 'Kab. ').replace(/^KOTA\s+/i, 'Kota ');
+                            const isMakassar = rawName.toUpperCase().includes('MAKASSAR');
+
                             if (isMakassar) {
-                                layer.bindTooltip(`<strong>${kabName} (Sulawesi Selatan)</strong><br><span style="color:#0284c7;font-weight:700;">Wilayah Pusat Pengujian</span> &bull; ${locations.length} Sekolah`, { sticky: true });
+                                layer.bindTooltip(`<strong>${kabName} (Sulawesi Selatan)</strong><br><span style="color:#0284c7;font-weight:700;">Wilayah Pusat Pengujian</span> &bull; ${locations.length} Sekolah Terdaftar`, { sticky: true });
                             } else {
-                                layer.bindTooltip(`<strong>${kabName}</strong><br>Provinsi Sulawesi Selatan`, { sticky: true });
+                                layer.bindTooltip(`<strong>${kabName}</strong><br>Provinsi Sulawesi Selatan &bull; <span style="color:#64748b;">Belum ada data sekolah</span>`, { sticky: true });
                             }
+
+                            layer.on({
+                                mouseover: function () {
+                                    if (isMakassar) {
+                                        updateRegionBadge(kabName, `${locations.length} Sekolah Terdaftar (Pusat Pengujian)`, 'active');
+                                    } else {
+                                        updateRegionBadge(kabName, '0 Sekolah Terdaftar (Tahap Perluasan)', 'inactive');
+                                    }
+                                },
+                                mouseout: function () {
+                                    restoreRegionBadge();
+                                },
+                                click: function (e) {
+                                    if (isMakassar) {
+                                        map.flyTo(makassarCenter, 12, { duration: 1.0 });
+                                        setActiveButton(btnMakassar);
+                                        currentBadgeState = {
+                                            name: 'Kota Makassar',
+                                            info: `${locations.length} Sekolah Terdaftar (Pusat Pengujian)`,
+                                            type: 'active'
+                                        };
+                                        restoreRegionBadge();
+                                    } else {
+                                        map.fitBounds(e.target.getBounds(), { padding: [30, 30], duration: 1.0 });
+                                        currentBadgeState = {
+                                            name: kabName,
+                                            info: '0 Sekolah Terdaftar (Tahap Perluasan)',
+                                            type: 'inactive'
+                                        };
+                                        restoreRegionBadge();
+                                    }
+                                }
+                            });
                         }
                     }).addTo(map);
 
@@ -715,6 +804,15 @@
                     direction: 'top',
                     offset: [0, -14]
                 });
+
+                marker.on('click', function () {
+                    currentBadgeState = {
+                        name: school.name,
+                        info: `Skor ${Number(school.score).toFixed(1)} (${school.jenjang}) &bull; ${school.address || school.city}`,
+                        type: 'school'
+                    };
+                    restoreRegionBadge();
+                });
             });
 
             window.__scrollToSchool = function (id) {
@@ -741,6 +839,12 @@
             btnMakassar.addEventListener('click', function () {
                 setActiveButton(this);
                 map.flyTo(makassarCenter, 12, { duration: 1.2 });
+                currentBadgeState = {
+                    name: 'Kota Makassar',
+                    info: `${locations.length} Sekolah Terdaftar (Pusat Pengujian)`,
+                    type: 'active'
+                };
+                restoreRegionBadge();
             });
 
             btnSulsel.addEventListener('click', function () {
@@ -750,11 +854,23 @@
                 } else {
                     map.flyTo(sulselCenter, 7, { duration: 1.2 });
                 }
+                currentBadgeState = {
+                    name: 'Provinsi Sulawesi Selatan',
+                    info: `24 Kab/Kota &bull; ${locations.length} Sekolah Terdaftar`,
+                    type: 'info'
+                };
+                restoreRegionBadge();
             });
 
             btnIndo.addEventListener('click', function () {
                 setActiveButton(this);
                 map.flyTo([-2.5489, 118.0149], 5, { duration: 1.4 });
+                currentBadgeState = {
+                    name: 'Skala Nasional (Indonesia)',
+                    info: 'Fase 1: Uji Coba Sulawesi Selatan',
+                    type: 'info'
+                };
+                restoreRegionBadge();
             });
         });
     </script>

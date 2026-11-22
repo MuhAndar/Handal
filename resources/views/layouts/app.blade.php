@@ -24,6 +24,22 @@
             }
         }
     </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Smooth transitions on links, buttons, and navigation */
+        a, button, .transition-smooth {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body {
+            opacity: 1;
+            transition: opacity 0.2s ease-in-out;
+        }
+        body.page-fading {
+            opacity: 0;
+        }
+    </style>
 </head>
 
 <body class="font-sans antialiased bg-slate-50 flex flex-col min-h-full">
@@ -36,7 +52,29 @@
                         class="h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-md">
                 </a>
 
-                <div class="hidden md:flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-2 lg:gap-3">
+                    <a href="{{ route('landing') }}"
+                        class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200
+                        {{ request()->routeIs('landing') ? 'bg-white/15 text-white font-bold' : 'text-blue-100 hover:text-white hover:bg-white/10' }}">
+                        Beranda
+                    </a>
+
+                    <a href="{{ route('speed.coding') }}"
+                        class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-1.5
+                        {{ request()->routeIs('speed.coding') ? 'bg-amber-400 text-blue-950 font-extrabold shadow-md shadow-amber-500/20' : 'text-amber-200 hover:text-white hover:bg-white/10' }}">
+                        <i class="bi bi-lightning-charge-fill {{ request()->routeIs('speed.coding') ? 'text-blue-950' : 'text-amber-300' }}"></i>
+                        <span>Speed Coding</span>
+                        <span class="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full {{ request()->routeIs('speed.coding') ? 'bg-blue-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
+                            Kompetisi
+                        </span>
+                    </a>
+
+                    <a href="{{ route('ranking.page') }}"
+                        class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200
+                        {{ request()->routeIs('ranking.page') ? 'bg-white/15 text-white font-bold' : 'text-blue-100 hover:text-white hover:bg-white/10' }}">
+                        Leaderboard
+                    </a>
+
                     @auth
                         @if (Auth::user()->role === 'school')
                             <div
@@ -92,6 +130,30 @@
             class="md:hidden bg-blue-700 border-t border-blue-500 shadow-inner" style="display: none;">
 
             <div class="px-4 pt-4 pb-6 space-y-3">
+                <div class="space-y-1 pb-3 border-b border-blue-500/50">
+                    <a href="{{ route('landing') }}"
+                        class="block px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
+                        {{ request()->routeIs('landing') ? 'bg-blue-800 font-bold' : 'hover:bg-blue-800/60' }}">
+                        <i class="bi bi-house-door-fill mr-2 text-blue-200"></i> Beranda
+                    </a>
+                    <a href="{{ route('speed.coding') }}"
+                        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
+                        {{ request()->routeIs('speed.coding') ? 'bg-amber-400 text-blue-950 font-bold' : 'hover:bg-blue-800/60' }}">
+                        <span>
+                            <i class="bi bi-lightning-charge-fill mr-2 {{ request()->routeIs('speed.coding') ? 'text-blue-950' : 'text-amber-300' }}"></i>
+                            Kompetisi Speed Coding
+                        </span>
+                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full {{ request()->routeIs('speed.coding') ? 'bg-blue-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
+                            Kompetisi
+                        </span>
+                    </a>
+                    <a href="{{ route('ranking.page') }}"
+                        class="block px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
+                        {{ request()->routeIs('ranking.page') ? 'bg-blue-800 font-bold' : 'hover:bg-blue-800/60' }}">
+                        <i class="bi bi-trophy-fill mr-2 text-amber-300"></i> Leaderboard Sekolah
+                    </a>
+                </div>
+
                 @auth
                     <div class="flex items-center gap-3 mb-4 px-2">
                         <div
@@ -179,7 +241,7 @@
                     <ul class="space-y-4 text-sm flex flex-col items-center md:items-start">
                         <li class="flex items-start gap-3">
                             <i class="bi bi-geo-alt-fill text-blue-500 mt-0.5"></i>
-                            <span>BBPSDM Komdigi Makassar<br>Jl. Prof. Abdurahman Basalamah</span>
+                            <span>BBLSDM Komdigi Makassar<br>Jl. Prof. Abdurahman Basalamah</span>
                         </li>
                         <li class="flex items-center gap-3">
                             <i class="bi bi-envelope-fill text-blue-500"></i>
@@ -222,6 +284,40 @@
         </div>
     </footer>
 
+    {{-- SCRIPT TRANSISI SMOOTH DISINKRONKAN KE SELURUH MENU & LINK INTERNAL --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Smooth page transition untuk link internal
+            const internalLinks = document.querySelectorAll('a[href]:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])');
+            internalLinks.forEach(function (link) {
+                link.addEventListener('click', function (e) {
+                    if (this.hostname === window.location.hostname && !e.ctrlKey && !e.shiftKey && !e.metaKey && e.button === 0) {
+                        const targetUrl = this.href;
+                        if (targetUrl === window.location.href || targetUrl === window.location.href + '#') return;
+                        
+                        e.preventDefault();
+                        document.body.classList.add('page-fading');
+                        setTimeout(function () {
+                            window.location.href = targetUrl;
+                        }, 160);
+                    }
+                });
+            });
+
+            // Smooth scroll untuk link hash internal misal #peta-sebaran, #tabel-pemeringkatan
+            document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+                anchor.addEventListener('click', function (e) {
+                    const targetId = this.getAttribute('href').substring(1);
+                    if (!targetId) return;
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        e.preventDefault();
+                        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

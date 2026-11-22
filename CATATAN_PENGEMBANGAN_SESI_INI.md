@@ -40,18 +40,46 @@
   4. Disediakan tombol navigasi cepat: **Kota Makassar** (zoom level 12), **Provinsi Sulsel** (*fit-bounds* seluruh 24 kab/kota), dan **Seluruh Nusantara**.
 
 ### 3. Penataan Antarmuka Halaman (Landing Page & Leaderboard)
-* **Halaman Beranda Utama (`/`):** Dikembalikan ke desain visual asli dengan Hero banner sampul visual, kartu aksi asesmen, galeri carousel kegiatan, dan seksi **Peta Interaktif Presisi** yang disematkan elegan di bagian tengah.
-* **Halaman Beranda Alternatif (`/landing-v2`):** Mengadopsi gaya editorial minimalis *World Population Review* dengan *sticky sidebar navigation*, kartu perbandingan skor tertinggi vs rata-rata wilayah, dan seksi khusus **Definisi & Metodologi** berdasarkan dokumen panduan BBPSDM Komdigi Makassar.
+* **Halaman Beranda Utama (`/`):**
+  * Hero banner kini menampilkan **Logo Perisai HANDAL 3D Transparan** beresolusi tinggi (tanpa latar belakang hitam) dengan efek pendaran cahaya (*ambient glow*), menggantikan foto sampul sebelumnya di sebelah kanan.
+  * Teks platform diperluas untuk mencakup **seluruh jenjang sekolah (SD, SMP, SMA/SMK/MA)**.
+  * Dilengkapi floating menu interaktif di sisi kiri (Dock Navigasi) yang muncul saat pengguna menggulir ke bawah, menghubungkan langsung ke Peta Sebaran, Tabel Peringkat, Metodologi, dan Dasar Hukum.
+  * Tabel pemeringkatan di beranda kini dilengkapi filter pencarian real-time dan tab jenjang (Semua, SD, SMP, SMA, SMK, MA).
+* **Halaman Beranda Alternatif (`/landing-v2`):** Mengadopsi gaya editorial minimalis *World Population Review* dengan *sticky sidebar navigation*, kartu perbandingan skor tertinggi vs rata-rata wilayah, dan seksi khusus **Definisi & Metodologi** berdasarkan dokumen panduan BBLSDM Komdigi Makassar.
 * **Halaman Leaderboard:**
   * Leaderboard Klasik: `/ranking-sekolah`
   * Leaderboard Rincian Komposit V2: `/ranking-v2` (menampilkan rincian nilai asesmen 70%, nilai survei siswa 30%, jumlah responden, dan badge tier).
+
+### 4. Halaman Khusus Kompetisi Speed Coding Scratch (`/speed-coding`)
+* **Latar Belakang:** Dibutuhkan halaman khusus yang mudah diakses dari header navbar untuk menampilkan riwayat dan pemenang lomba Speed Coding tahunan.
+* **Fitur Utama:**
+  1. **Aplikasi Standar:** Menggunakan aplikasi **Scratch 3.0** (pemrograman berbasis blok logika).
+  2. **Jenjang Peserta:** Dikhususkan untuk siswa **SD (Kelas 5 - 6)** dan **SMP (Kelas 1 - 3 / Kelas 7 - 9)**.
+  3. **Podium Juara 1, 2, 3 dengan Animasi Khusus:** Visual podium bertingkat 3-tier (*Juara 1 emas di tengah paling tinggi dengan mahkota berdenyut*, Juara 2 perak di kiri, Juara 3 perunggu di kanan) lengkap dengan nama, sekolah, kelas, catatan waktu, dan skor akurasi.
+  4. **Tombol Pengganti Tahun (Annual Switcher):** Berpindah instan antara **Edisi 2026 (Tahun Ini)** dan **Edisi 2025 (Tahun Lalu)**.
+  5. **Tabel Interaktif 30 Peserta:** Pencarian instan dan tab filter (Semua 30 Peserta, Top 10 Finalis, Podium Juara, SD, dan SMP).
+  6. **Branding:** Menampilkan **Logo Resmi BBLSDM Komdigi Makassar** pada header kejuaraan.
+
+### 5. Standardisasi Instansi BBLSDM & Transisi Halus Antar Menu
+* **Perubahan Nomenklatur:** Seluruh teks "BBPSDM Komdigi Makassar" di seluruh berkas dan dokumen proyek resmi diubah menjadi **"BBLSDM Komdigi Makassar"**.
+* **Pengubahan Istilah:** Istilah "Lomba Speed Coding" di navbar dan judul halaman diubah menjadi **"Kompetisi Speed Coding"**.
+* **Transisi Halus (*Smooth Transitions*):**
+  * `scroll-behavior: smooth` aktif untuk pergerakan navigasi antar seksi di halaman beranda.
+  * Transisi *page fading* halus saat berpindah antar rute internal website.
 
 ---
 
 ## 📁 Berkas Baru & Modifikasi Utama
 
+* `app/Http/Controllers/SpeedCodingController.php` *(Baru)*: Pengontrol data 30 peserta, podium juara, dan riwayat edisi kompetisi Speed Coding Scratch.
+* `resources/views/pages/speed_coding.blade.php` *(Baru)*: Tampilan halaman kejuaraan Speed Coding dengan tema cyber-mode, podium animasi, dan tabel interaktif.
+* `public/img/logo_handal_shield_transparent.png` *(Baru)*: Logo 3D shield HANDAL dengan latar belakang transparan berkualitas tinggi.
+* `public/img/logo_bblsdm_komdigi.png` *(Baru)*: Logo resmi BBLSDM Komdigi Makassar transparan.
 * `app/Http/Controllers/StudentSurveyController.php` *(Baru)*: Logika pengisian survei siswa dan kalkulasi skor Likert.
 * `app/Models/School.php` *(Modifikasi)*: Relasi respon siswa, atribut predikat tier, dan method `recalculateOverallScore()`.
+* `public/data/sulsel_accurate.geojson` *(Baru)*: Data batas administratif 24 Kab/Kota Sulsel.
+* `resources/views/layouts/app.blade.php` *(Modifikasi)*: Penambahan menu Kompetisi Speed Coding, transisi smooth, dan penyesuaian footer BBLSDM.
+* `resources/views/landing.blade.php` *(Modifikasi)*: Pemasangan logo besar transparan di kanan, perbaikan kode bocor, dock navigasi kiri, dan peta Leaflet.
 * `app/Models/StudentSurveyQuestion.php`, `StudentSurveyResponse.php`, `StudentSurveyAnswer.php` *(Baru)*.
 * `database/migrations/2026_11_02_055406_create_student_surveys_table.php` *(Baru)*.
 * `database/seeders/StudentSurveyQuestionSeeder.php` *(Baru)*.
