@@ -85,7 +85,7 @@
                         <i class="bi bi-arrow-left"></i> Beranda Asli
                     </a>
                     <span class="text-slate-300">|</span>
-                    <a href="{{ route('ranking.page.v2') }}" class="font-semibold text-blue-600 hover:underline">
+                    <a href="{{ route('ranking.page') }}" class="font-semibold text-blue-600 hover:underline">
                         Tabel Leaderboard &rarr;
                     </a>
                 </div>
@@ -706,6 +706,9 @@
                                     restoreRegionBadge();
                                 },
                                 click: function (e) {
+                                    if (e.originalEvent && e.originalEvent.target && typeof e.originalEvent.target.blur === 'function') {
+                                        e.originalEvent.target.blur();
+                                    }
                                     if (isMakassar) {
                                         map.flyTo(makassarCenter, 12, { duration: 1.0 });
                                         setActiveButton(btnMakassar);

@@ -73,7 +73,7 @@
                                             <i class="bi bi-pencil-square text-lg"></i>
                                         </a>
                                         <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus kategori ini? Data soal di dalamnya juga akan terhapus.');">
+                                            onsubmit="event.preventDefault(); window.handalConfirmForm(this, 'Apakah Anda yakin ingin menghapus kategori {{ $category->name }}? Data soal di dalamnya juga akan terhapus.', 'Hapus Kategori', 'danger');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"

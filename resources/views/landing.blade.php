@@ -9,12 +9,14 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    {{-- FLOATING QUICK NAVIGATION DOCK (MUNCUL PERLAHAN SAAT SCROLL KE BAWAH) --}}
+    {{-- FLOATING QUICK NAVIGATION DOCK (RESPONSIF & ADAPTIF UNTUK LAPTOP & DESKTOP) --}}
     <aside id="floating-quick-nav"
-           class="fixed left-3 lg:left-6 xl:left-8 top-1/2 -translate-y-1/2 z-40 hidden md:block transition-all duration-500 ease-out opacity-0 pointer-events-none -translate-x-6">
-        <div class="bg-white/90 backdrop-blur-xl border border-slate-200/90 shadow-2xl shadow-blue-500/10 rounded-2xl p-2.5 w-48 transition-all">
-            <div class="px-2.5 py-1.5 mb-1.5 flex items-center justify-between border-b border-slate-100 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                <span class="flex items-center gap-1.5 text-blue-600">
+           class="fixed left-2 sm:left-3 2xl:left-6 top-1/2 -translate-y-1/2 z-40 hidden md:block transition-all duration-500 ease-out opacity-0 pointer-events-none -translate-x-6">
+        <div class="bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-2xl shadow-blue-500/15 rounded-2xl p-1.5 2xl:p-2.5 w-12 2xl:w-48 transition-all duration-300 group/nav hover:w-48 hover:shadow-blue-500/25">
+            
+            {{-- Header Navigasi --}}
+            <div class="hidden 2xl:flex px-2 py-1.5 mb-1.5 items-center justify-between border-b border-slate-100 text-[10px] font-extrabold uppercase tracking-wider text-slate-400 group-hover/nav:flex">
+                <span class="flex items-center gap-1.5 text-blue-600 truncate">
                     <i class="bi bi-compass-fill"></i> Navigasi Halaman
                 </span>
                 <a href="#hero-top" class="text-slate-400 hover:text-blue-600 transition-colors" title="Kembali ke atas">
@@ -22,41 +24,58 @@
                 </a>
             </div>
 
-            <nav class="space-y-1 text-xs font-semibold">
+            <nav class="space-y-1.5 text-xs font-semibold">
+                {{-- Item 1: Peta Sebaran --}}
                 <a href="#peta-sebaran"
                    data-nav-target="peta-sebaran"
-                   class="quick-nav-item flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
-                    <span class="w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
+                   title="Peta Sebaran"
+                   class="quick-nav-item flex items-center gap-2.5 p-1.5 2xl:px-2.5 2xl:py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
+                    <span class="w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
                         <i class="bi bi-geo-alt-fill"></i>
                     </span>
-                    <span class="truncate">Peta Sebaran</span>
+                    <span class="hidden 2xl:inline truncate group-hover/nav:inline">Peta Sebaran</span>
                 </a>
 
+                {{-- Item 2: Tabel Peringkat --}}
                 <a href="#tabel-pemeringkatan"
                    data-nav-target="tabel-pemeringkatan"
-                   class="quick-nav-item flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
-                    <span class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
+                   title="Tabel Peringkat"
+                   class="quick-nav-item flex items-center gap-2.5 p-1.5 2xl:px-2.5 2xl:py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
+                    <span class="w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
                         <i class="bi bi-trophy-fill"></i>
                     </span>
-                    <span class="truncate">Tabel Peringkat</span>
+                    <span class="hidden 2xl:inline truncate group-hover/nav:inline">Tabel Peringkat</span>
                 </a>
 
+                {{-- Item 3: Metodologi --}}
                 <a href="#definisi-metodologi"
                    data-nav-target="definisi-metodologi"
-                   class="quick-nav-item flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
-                    <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
+                   title="Metodologi"
+                   class="quick-nav-item flex items-center gap-2.5 p-1.5 2xl:px-2.5 2xl:py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
+                    <span class="w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
                         <i class="bi bi-diagram-3-fill"></i>
                     </span>
-                    <span class="truncate">Metodologi</span>
+                    <span class="hidden 2xl:inline truncate group-hover/nav:inline">Metodologi</span>
                 </a>
 
+                {{-- Item 4: Dasar Hukum --}}
                 <a href="#dasar-hukum"
                    data-nav-target="dasar-hukum"
-                   class="quick-nav-item flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
-                    <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
+                   title="Dasar Hukum"
+                   class="quick-nav-item flex items-center gap-2.5 p-1.5 2xl:px-2.5 2xl:py-2 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
+                    <span class="w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
                         <i class="bi bi-shield-check"></i>
                     </span>
-                    <span class="truncate">Dasar Hukum</span>
+                    <span class="hidden 2xl:inline truncate group-hover/nav:inline">Dasar Hukum</span>
+                </a>
+
+                {{-- Tombol Ke Atas Khusus Laptop --}}
+                <a href="#hero-top"
+                   title="Kembali ke Atas"
+                   class="2xl:hidden group-hover/nav:hidden flex items-center justify-center p-1.5 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50/70 transition-all">
+                    <span class="w-7 h-7 rounded-lg bg-slate-50 text-slate-400 flex items-center justify-center text-xs flex-shrink-0 transition-colors">
+                        <i class="bi bi-arrow-up"></i>
+                    </span>
                 </a>
             </nav>
         </div>
@@ -340,33 +359,33 @@
                         </div>
                     </div>
 
-                    {{-- Tabel Data --}}
+                    {{-- Tabel Data dengan Proteksi Anti-Truncate & Min-Width Responsif --}}
                     <div class="rounded-2xl border border-slate-100 overflow-hidden shadow-xs">
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse text-sm">
+                        <div class="overflow-x-auto w-full">
+                            <table class="w-full text-left border-collapse text-sm min-w-[860px]">
                                 <thead>
                                     <tr class="bg-slate-50/90 border-b border-slate-200/80 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                        <th class="px-5 py-4 text-center w-16">Peringkat</th>
-                                        <th class="px-5 py-4 cursor-pointer hover:text-blue-600 transition-colors"
+                                        <th class="px-4 py-4 text-center w-16 whitespace-nowrap">Peringkat</th>
+                                        <th class="px-5 py-4 cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap min-w-[240px]"
                                             @click="sortBy = 'name'; sortAsc = !sortAsc">
                                             Institusi Sekolah <i class="bi bi-arrow-down-up ml-1 text-[10px]"></i>
                                         </th>
-                                        <th class="px-5 py-4 text-center">Asesmen Mandiri (70%)</th>
-                                        <th class="px-5 py-4 text-center cursor-pointer hover:text-blue-600 transition-colors"
+                                        <th class="px-4 py-4 text-center whitespace-nowrap min-w-[130px]">Asesmen Mandiri (70%)</th>
+                                        <th class="px-4 py-4 text-center cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap min-w-[130px]"
                                             @click="sortBy = 'students'; sortAsc = !sortAsc">
                                             Survei Siswa (30%) <i class="bi bi-arrow-down-up ml-1 text-[10px]"></i>
                                         </th>
-                                        <th class="px-5 py-4 text-center cursor-pointer hover:text-blue-600 transition-colors"
+                                        <th class="px-4 py-4 text-center cursor-pointer hover:text-blue-600 transition-colors whitespace-nowrap min-w-[110px]"
                                             @click="sortBy = 'score'; sortAsc = !sortAsc">
                                             Skor Komposit <i class="bi bi-arrow-down-up ml-1 text-[10px]"></i>
                                         </th>
-                                        <th class="px-5 py-4 text-center">Maturitas Tier</th>
+                                        <th class="px-5 py-4 text-center whitespace-nowrap min-w-[140px]">Maturitas Tier</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
                                     <template x-for="(school, index) in filteredSchools" :key="school.id">
                                         <tr class="hover:bg-slate-50/80 transition-colors">
-                                            <td class="px-5 py-4 text-center font-bold">
+                                            <td class="px-4 py-4 text-center font-bold whitespace-nowrap">
                                                 <template x-if="index === 0">
                                                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 text-amber-700 font-extrabold shadow-xs">🥇</span>
                                                 </template>
@@ -382,7 +401,7 @@
                                             </td>
                                             <td class="px-5 py-4">
                                                 <div class="font-extrabold text-slate-900" x-text="school.name"></div>
-                                                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
+                                                <div class="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2 flex-wrap">
                                                     <span class="font-semibold text-blue-600" x-text="school.jenjang"></span>
                                                     <span>&bull;</span>
                                                     <span x-text="'NPSN: ' + (school.npsn || '-')"></span>
@@ -390,19 +409,19 @@
                                                     <span x-text="school.address || 'Makassar'"></span>
                                                 </div>
                                             </td>
-                                            <td class="px-5 py-4 text-center">
+                                            <td class="px-4 py-4 text-center whitespace-nowrap">
                                                 <span class="font-bold text-slate-800" x-text="Number(school.self_assessment_score).toFixed(1)"></span>
                                             </td>
-                                            <td class="px-5 py-4 text-center">
+                                            <td class="px-4 py-4 text-center whitespace-nowrap">
                                                 <span class="font-bold text-indigo-600" x-text="Number(school.student_survey_score).toFixed(1)"></span>
-                                                <span class="text-[10px] text-slate-400 block" x-text="'(' + school.student_respondents_count + ' responden)'"></span>
+                                                <span class="text-[10px] text-slate-400 block whitespace-nowrap" x-text="'(' + school.student_respondents_count + ' responden)'"></span>
                                             </td>
-                                            <td class="px-5 py-4 text-center">
-                                                <span class="inline-block px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 font-extrabold text-sm border border-emerald-200"
+                                            <td class="px-4 py-4 text-center whitespace-nowrap">
+                                                <span class="inline-block px-3 py-1 rounded-xl bg-emerald-50 text-emerald-800 font-extrabold text-sm border border-emerald-200 whitespace-nowrap shadow-2xs"
                                                       x-text="Number(school.current_score).toFixed(1)"></span>
                                             </td>
-                                            <td class="px-5 py-4 text-center">
-                                                <span class="px-3 py-1 rounded-full text-[11px] font-bold border"
+                                            <td class="px-5 py-4 text-center whitespace-nowrap">
+                                                <span class="inline-block px-3.5 py-1.5 rounded-full text-xs font-bold border whitespace-nowrap shadow-2xs"
                                                       :class="getTierClass(school.current_score)"
                                                       x-text="getTierName(school.current_score)"></span>
                                             </td>
@@ -420,8 +439,8 @@
 
                     <div class="mt-4 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-2">
                         <span><i class="bi bi-shield-check text-blue-600 mr-1"></i> Data diperbarui otomatis berdasarkan survei siswa & verifikasi bukti asesmen.</span>
-                        <a href="{{ route('ranking.page.v2') }}" class="font-bold text-blue-600 hover:text-blue-800 hover:underline">
-                            Buka Rincian Komposit 70/30 &rarr;
+                        <a href="{{ route('ranking.page') }}" class="font-bold text-blue-600 hover:text-blue-800 hover:underline">
+                            Lihat Seluruh Peringkat Sekolah &rarr;
                         </a>
                     </div>
                 </div>
@@ -958,6 +977,9 @@
                                     restoreRegionBadge();
                                 },
                                 click: function (e) {
+                                    if (e.originalEvent && e.originalEvent.target && typeof e.originalEvent.target.blur === 'function') {
+                                        e.originalEvent.target.blur();
+                                    }
                                     if (isMakassar) {
                                         map.flyTo(makassarCenter, 12, { duration: 1.0 });
                                         setActiveButton(btnMakassar);
@@ -1158,16 +1180,16 @@
                                 item.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
                                 item.classList.remove('text-slate-600', 'hover:bg-blue-50/70', 'hover:text-blue-600');
                                 if (iconBox) {
-                                    iconBox.className = 'w-6 h-6 rounded-lg bg-white/20 text-white flex items-center justify-center text-xs flex-shrink-0 transition-colors';
+                                    iconBox.className = 'w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-white/20 text-white flex items-center justify-center text-xs flex-shrink-0 transition-colors';
                                 }
                             } else {
                                 item.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
                                 item.classList.add('text-slate-600', 'hover:bg-blue-50/70', 'hover:text-blue-600');
                                 if (iconBox) {
-                                    if (target === 'peta-sebaran') iconBox.className = 'w-6 h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
-                                    else if (target === 'tabel-pemeringkatan') iconBox.className = 'w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
-                                    else if (target === 'definisi-metodologi') iconBox.className = 'w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
-                                    else if (target === 'dasar-hukum') iconBox.className = 'w-6 h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
+                                    if (target === 'peta-sebaran') iconBox.className = 'w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
+                                    else if (target === 'tabel-pemeringkatan') iconBox.className = 'w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
+                                    else if (target === 'definisi-metodologi') iconBox.className = 'w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
+                                    else if (target === 'dasar-hukum') iconBox.className = 'w-7 h-7 2xl:w-6 2xl:h-6 rounded-lg bg-slate-100 text-slate-600 flex items-center justify-center text-xs flex-shrink-0 transition-colors';
                                 }
                             }
                         });

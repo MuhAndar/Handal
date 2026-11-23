@@ -3,25 +3,7 @@
 @section('title', 'Leaderboard Sekolah Aman')
 
 @section('content')
-    <div class="max-w-6xl mx-auto px-4 py-8">
-
-        {{-- BREADCRUMB & SWITCHER --}}
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-            <nav class="flex" aria-label="Breadcrumb">
-                <ol
-                    class="inline-flex items-center space-x-2 text-sm text-slate-500 bg-white px-4 py-2 rounded-full border border-slate-100 shadow-sm">
-                    <li><a href="/" class="hover:text-blue-600 transition-colors font-medium"><i
-                                class="bi bi-house-door-fill mr-1"></i> Beranda</a></li>
-                    <li class="text-slate-300">/</li>
-                    <li class="font-bold text-blue-600" aria-current="page">Leaderboard (Asli)</li>
-                </ol>
-            </nav>
-
-            <a href="{{ route('ranking.page.v2') }}"
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-xs font-bold shadow-sm transition-colors">
-                <i class="bi bi-layout-text-window-reverse"></i> Coba Leaderboard Baru (Rincian 70%-30%) &rarr;
-            </a>
-        </div>
+    <div class="max-w-6xl mx-auto px-4 py-10">
 
         {{-- HEADER --}}
         <div class="text-center mb-12">

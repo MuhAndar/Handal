@@ -28,22 +28,53 @@
         html {
             scroll-behavior: smooth;
         }
-        /* Smooth transitions on links, buttons, and navigation */
+        /* Smooth transitions on interactive elements */
         a, button, .transition-smooth {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        body {
-            opacity: 1;
-            transition: opacity 0.2s ease-in-out;
-        }
-        body.page-fading {
+        /* Indikator Loading Garis Halus di Atas Layar (Gaya YouTube / GitHub / NProgress) */
+        #top-loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            width: 0%;
+            background: linear-gradient(90deg, #F59E0B, #FBBF24, #3B82F6);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.7), 0 0 5px rgba(59, 130, 246, 0.5);
+            z-index: 99999;
+            transition: width 0.3s cubic-bezier(0.1, 0.05, 0.25, 1), opacity 0.2s ease;
+            pointer-events: none;
             opacity: 0;
+        }
+        #top-loading-bar.active {
+            opacity: 1;
+        }
+        /* Hilangkan kotak hitam / focus outline bawaan browser pada poligon & marker peta Leaflet */
+        .leaflet-container path:focus,
+        .leaflet-container path:focus-visible,
+        .leaflet-container svg:focus,
+        .leaflet-container svg:focus-visible,
+        .leaflet-container div:focus,
+        .leaflet-container div:focus-visible,
+        path.leaflet-interactive:focus,
+        path.leaflet-interactive:focus-visible,
+        .leaflet-interactive:focus,
+        .leaflet-interactive:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
         }
     </style>
 </head>
 
 <body class="font-sans antialiased bg-slate-50 flex flex-col min-h-full">
-    <nav class="bg-blue-600 shadow-lg sticky top-0 z-50 transition-all duration-300" x-data="{ open: false }">
+    {{-- GARIS INDIKATOR LOADING HALUS --}}
+    <div id="top-loading-bar"></div>
+
+    @php
+        $isDarkNavbar = request()->routeIs('speed.coding');
+    @endphp
+
+    <nav class="{{ $isDarkNavbar ? 'bg-slate-950/95 backdrop-blur-md border-b border-slate-800 shadow-2xl' : 'bg-blue-600 shadow-lg' }} sticky top-0 z-50 transition-colors duration-300" x-data="{ open: false }">
         <div class="container mx-auto px-4 md:px-6">
             <div class="flex justify-between items-center h-20">
 
@@ -55,51 +86,63 @@
                 <div class="hidden md:flex items-center gap-2 lg:gap-3">
                     <a href="{{ route('landing') }}"
                         class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200
-                        {{ request()->routeIs('landing') ? 'bg-white/15 text-white font-bold' : 'text-blue-100 hover:text-white hover:bg-white/10' }}">
+                        @if(request()->routeIs('landing'))
+                            {{ $isDarkNavbar ? 'bg-slate-800 text-white font-bold' : 'bg-white/15 text-white font-bold' }}
+                        @else
+                            {{ $isDarkNavbar ? 'text-slate-300 hover:text-white hover:bg-slate-800/80' : 'text-blue-100 hover:text-white hover:bg-white/10' }}
+                        @endif">
                         Beranda
                     </a>
 
                     <a href="{{ route('speed.coding') }}"
                         class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200 flex items-center gap-1.5
-                        {{ request()->routeIs('speed.coding') ? 'bg-amber-400 text-blue-950 font-extrabold shadow-md shadow-amber-500/20' : 'text-amber-200 hover:text-white hover:bg-white/10' }}">
-                        <i class="bi bi-lightning-charge-fill {{ request()->routeIs('speed.coding') ? 'text-blue-950' : 'text-amber-300' }}"></i>
+                        @if(request()->routeIs('speed.coding'))
+                            bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.02]
+                        @else
+                            {{ $isDarkNavbar ? 'text-amber-300 hover:text-white hover:bg-slate-800/80' : 'text-amber-200 hover:text-white hover:bg-white/10' }}
+                        @endif">
+                        <i class="bi bi-lightning-charge-fill {{ request()->routeIs('speed.coding') ? 'text-slate-950' : 'text-amber-300' }}"></i>
                         <span>Speed Coding</span>
-                        <span class="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full {{ request()->routeIs('speed.coding') ? 'bg-blue-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
+                        <span class="px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider rounded-full {{ request()->routeIs('speed.coding') ? 'bg-slate-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
                             Kompetisi
                         </span>
                     </a>
 
                     <a href="{{ route('ranking.page') }}"
                         class="px-3.5 py-2 rounded-full text-sm font-semibold transition-all duration-200
-                        {{ request()->routeIs('ranking.page') ? 'bg-white/15 text-white font-bold' : 'text-blue-100 hover:text-white hover:bg-white/10' }}">
+                        @if(request()->routeIs('ranking.page'))
+                            {{ $isDarkNavbar ? 'bg-slate-800 text-white font-bold' : 'bg-white/15 text-white font-bold' }}
+                        @else
+                            {{ $isDarkNavbar ? 'text-slate-300 hover:text-white hover:bg-slate-800/80' : 'text-blue-100 hover:text-white hover:bg-white/10' }}
+                        @endif">
                         Leaderboard
                     </a>
 
                     @auth
                         @if (Auth::user()->role === 'school')
                             <div
-                                class="inline-flex items-center gap-1 bg-blue-800/40 backdrop-blur-md rounded-full p-1 border border-blue-400/30 shadow-inner">
+                                class="inline-flex items-center gap-1 {{ $isDarkNavbar ? 'bg-slate-900/90 border-slate-700/80' : 'bg-blue-800/40 border-blue-400/30' }} backdrop-blur-md rounded-full p-1 border shadow-inner">
                                 <a href="{{ route('school.dashboard') }}"
                                     class="px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
-                                   {{ request()->routeIs('school.dashboard') ? 'bg-white text-blue-600 shadow-md' : 'text-blue-100 hover:bg-white/10 hover:text-white' }}">
+                                   {{ request()->routeIs('school.dashboard') ? ($isDarkNavbar ? 'bg-amber-400 text-slate-950 shadow-md font-black' : 'bg-white text-blue-600 shadow-md') : ($isDarkNavbar ? 'text-slate-300 hover:bg-slate-800 hover:text-white' : 'text-blue-100 hover:bg-white/10 hover:text-white') }}">
                                     <i class="bi bi-grid-fill"></i> Dashboard
                                 </a>
                                 <a href="{{ route('school.profile.edit') }}"
                                     class="px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
-                                   {{ request()->routeIs('school.profile.edit') ? 'bg-white text-blue-600 shadow-md' : 'text-blue-100 hover:bg-white/10 hover:text-white' }}">
+                                   {{ request()->routeIs('school.profile.edit') ? ($isDarkNavbar ? 'bg-amber-400 text-slate-950 shadow-md font-black' : 'bg-white text-blue-600 shadow-md') : ($isDarkNavbar ? 'text-slate-300 hover:bg-slate-800 hover:text-white' : 'text-blue-100 hover:bg-white/10 hover:text-white') }}">
                                     <i class="bi bi-person-circle"></i> Profil
                                 </a>
                             </div>
                         @endif
 
-                        <div class="h-6 w-px bg-blue-400 mx-2"></div>
+                        <div class="h-6 w-px {{ $isDarkNavbar ? 'bg-slate-700' : 'bg-blue-400' }} mx-2"></div>
 
                         <div class="flex items-center gap-3">
-                            <span class="text-sm font-medium text-blue-50">{{ Auth::user()->name }}</span>
+                            <span class="text-sm font-medium {{ $isDarkNavbar ? 'text-slate-200' : 'text-blue-50' }}">{{ Auth::user()->name }}</span>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
-                                    class="flex items-center justify-center w-9 h-9 rounded-full bg-blue-700 text-blue-200 hover:bg-red-500 hover:text-white border border-blue-500 hover:border-red-400 transition-all shadow-sm"
+                                    class="flex items-center justify-center w-9 h-9 rounded-full {{ $isDarkNavbar ? 'bg-slate-800 text-slate-300 hover:bg-red-500 hover:text-white border-slate-700' : 'bg-blue-700 text-blue-200 hover:bg-red-500 hover:text-white border-blue-500' }} border hover:border-red-400 transition-all shadow-sm"
                                     title="Keluar">
                                     <i class="bi bi-box-arrow-right text-lg"></i>
                                 </button>
@@ -107,7 +150,7 @@
                         </div>
                     @else
                         <a href="{{ route('login') }}"
-                            class="group flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-blue-700 bg-white hover:bg-slate-100 rounded-full shadow-lg transition-all transform hover:-translate-y-0.5">
+                            class="group flex items-center gap-2 px-6 py-2.5 text-sm font-bold {{ $isDarkNavbar ? 'text-slate-950 bg-gradient-to-r from-amber-400 to-yellow-300 hover:from-amber-300 hover:to-yellow-200 shadow-amber-500/20' : 'text-blue-700 bg-white hover:bg-slate-100' }} rounded-full shadow-lg transition-all transform hover:-translate-y-0.5">
                             <i class="bi bi-person-circle text-lg opacity-80 group-hover:opacity-100"></i>
                             <span>Masuk</span>
                         </a>
@@ -116,7 +159,7 @@
 
                 <div class="md:hidden flex items-center">
                     <button @click="open = !open"
-                        class="text-white p-2 focus:outline-none hover:bg-blue-700 rounded-lg transition-colors">
+                        class="{{ $isDarkNavbar ? 'text-slate-200 hover:bg-slate-800' : 'text-white hover:bg-blue-700' }} p-2 focus:outline-none rounded-lg transition-colors">
                         <i class="bi text-3xl" :class="open ? 'bi-x-lg' : 'bi-list'"></i>
                     </button>
                 </div>
@@ -127,29 +170,41 @@
             x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
             x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
             x-transition:leave-end="opacity-0 -translate-y-2"
-            class="md:hidden bg-blue-700 border-t border-blue-500 shadow-inner" style="display: none;">
+            class="md:hidden {{ $isDarkNavbar ? 'bg-slate-900 border-t border-slate-800 shadow-2xl' : 'bg-blue-700 border-t border-blue-500 shadow-inner' }}" style="display: none;">
 
             <div class="px-4 pt-4 pb-6 space-y-3">
-                <div class="space-y-1 pb-3 border-b border-blue-500/50">
+                <div class="space-y-1 pb-3 {{ $isDarkNavbar ? 'border-b border-slate-800' : 'border-b border-blue-500/50' }}">
                     <a href="{{ route('landing') }}"
-                        class="block px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
-                        {{ request()->routeIs('landing') ? 'bg-blue-800 font-bold' : 'hover:bg-blue-800/60' }}">
-                        <i class="bi bi-house-door-fill mr-2 text-blue-200"></i> Beranda
+                        class="block px-4 py-2.5 rounded-xl font-semibold transition-colors
+                        @if(request()->routeIs('landing'))
+                            {{ $isDarkNavbar ? 'bg-slate-800 text-white font-bold' : 'bg-blue-800 text-white font-bold' }}
+                        @else
+                            {{ $isDarkNavbar ? 'text-slate-300 hover:bg-slate-800/80 hover:text-white' : 'text-white hover:bg-blue-800/60' }}
+                        @endif">
+                        <i class="bi bi-house-door-fill mr-2 {{ $isDarkNavbar ? 'text-slate-400' : 'text-blue-200' }}"></i> Beranda
                     </a>
                     <a href="{{ route('speed.coding') }}"
-                        class="flex items-center justify-between px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
-                        {{ request()->routeIs('speed.coding') ? 'bg-amber-400 text-blue-950 font-bold' : 'hover:bg-blue-800/60' }}">
+                        class="flex items-center justify-between px-4 py-2.5 rounded-xl font-semibold transition-colors
+                        @if(request()->routeIs('speed.coding'))
+                            bg-amber-400 text-slate-950 font-black
+                        @else
+                            {{ $isDarkNavbar ? 'text-slate-300 hover:bg-slate-800/80' : 'text-white hover:bg-blue-800/60' }}
+                        @endif">
                         <span>
-                            <i class="bi bi-lightning-charge-fill mr-2 {{ request()->routeIs('speed.coding') ? 'text-blue-950' : 'text-amber-300' }}"></i>
+                            <i class="bi bi-lightning-charge-fill mr-2 {{ request()->routeIs('speed.coding') ? 'text-slate-950' : 'text-amber-300' }}"></i>
                             Kompetisi Speed Coding
                         </span>
-                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full {{ request()->routeIs('speed.coding') ? 'bg-blue-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
+                        <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full {{ request()->routeIs('speed.coding') ? 'bg-slate-950 text-amber-300' : 'bg-amber-400 text-blue-950' }}">
                             Kompetisi
                         </span>
                     </a>
                     <a href="{{ route('ranking.page') }}"
-                        class="block px-4 py-2.5 rounded-xl text-white font-semibold transition-colors
-                        {{ request()->routeIs('ranking.page') ? 'bg-blue-800 font-bold' : 'hover:bg-blue-800/60' }}">
+                        class="block px-4 py-2.5 rounded-xl font-semibold transition-colors
+                        @if(request()->routeIs('ranking.page'))
+                            {{ $isDarkNavbar ? 'bg-slate-800 text-white font-bold' : 'bg-blue-800 text-white font-bold' }}
+                        @else
+                            {{ $isDarkNavbar ? 'text-slate-300 hover:bg-slate-800/80 hover:text-white' : 'text-white hover:bg-blue-800/60' }}
+                        @endif">
                         <i class="bi bi-trophy-fill mr-2 text-amber-300"></i> Leaderboard Sekolah
                     </a>
                 </div>
@@ -168,11 +223,11 @@
 
                     @if (Auth::user()->role === 'school')
                         <a href="{{ route('school.dashboard') }}"
-                            class="block px-4 py-3 rounded-xl bg-blue-800 text-white font-bold hover:bg-blue-900 transition-colors border border-blue-600">
+                            class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-amber-300 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
                             <i class="bi bi-grid-fill mr-2"></i> Dashboard
                         </a>
                         <a href="{{ route('school.profile.edit') }}"
-                            class="block px-4 py-3 rounded-xl bg-blue-800 text-white font-bold hover:bg-blue-900 transition-colors border border-blue-600">
+                            class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
                             <i class="bi bi-person-circle mr-2"></i> Profil Sekolah
                         </a>
                     @endif
@@ -186,11 +241,11 @@
                     </form>
                 @else
                     <a href="{{ route('login') }}"
-                        class="block w-full text-center px-4 py-3 rounded-xl bg-white text-blue-700 font-bold shadow-md hover:bg-slate-100">
+                        class="block w-full text-center px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-slate-950 font-black shadow-md hover:from-amber-300 hover:to-yellow-200' : 'bg-white text-blue-700 font-bold shadow-md hover:bg-slate-100' }}">
                         Masuk Akun
                     </a>
                     <a href="{{ route('registration.page') }}"
-                        class="block w-full text-center px-4 py-3 rounded-xl border border-white/30 text-white font-bold hover:bg-white/10">
+                        class="block w-full text-center px-4 py-3 rounded-xl border {{ $isDarkNavbar ? 'border-slate-700 bg-slate-800/80 text-slate-200 hover:bg-slate-800' : 'border-white/30 text-white hover:bg-white/10' }} font-bold">
                         Daftar Sekolah Baru
                     </a>
                 @endauth
@@ -284,10 +339,22 @@
         </div>
     </footer>
 
-    {{-- SCRIPT TRANSISI SMOOTH DISINKRONKAN KE SELURUH MENU & LINK INTERNAL --}}
+    {{-- SCRIPT INDIKATOR PROGRESS BAR HALUS PADA NAVIGASI MENU & SMOOTH SCROLL --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Smooth page transition untuk link internal
+            const bar = document.getElementById('top-loading-bar');
+
+            // Quick finish progress bar on initial page load
+            if (bar) {
+                bar.classList.add('active');
+                bar.style.width = '100%';
+                setTimeout(() => {
+                    bar.classList.remove('active');
+                    bar.style.width = '0%';
+                }, 200);
+            }
+
+            // Smooth top loading indicator untuk link internal (tanpa memutihkan layar)
             const internalLinks = document.querySelectorAll('a[href]:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])');
             internalLinks.forEach(function (link) {
                 link.addEventListener('click', function (e) {
@@ -295,13 +362,24 @@
                         const targetUrl = this.href;
                         if (targetUrl === window.location.href || targetUrl === window.location.href + '#') return;
                         
-                        e.preventDefault();
-                        document.body.classList.add('page-fading');
-                        setTimeout(function () {
-                            window.location.href = targetUrl;
-                        }, 160);
+                        if (bar) {
+                            bar.classList.add('active');
+                            bar.style.width = '30%';
+                            setTimeout(() => { bar.style.width = '75%'; }, 80);
+                        }
                     }
                 });
+            });
+
+            // Reset progress bar on browser back/forward (pageshow)
+            window.addEventListener('pageshow', function () {
+                if (bar) {
+                    bar.style.width = '100%';
+                    setTimeout(() => {
+                        bar.classList.remove('active');
+                        bar.style.width = '0%';
+                    }, 200);
+                }
             });
 
             // Smooth scroll untuk link hash internal misal #peta-sebaran, #tabel-pemeringkatan

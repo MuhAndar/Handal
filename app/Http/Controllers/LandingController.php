@@ -131,14 +131,6 @@ class LandingController extends Controller
         return view('pages.ranking', compact('rankings'));
     }
 
-    public function rankingPageV2()
-    {
-        $rankings = Cache::remember('school_rankings', 3600, function () {
-            return School::orderBy('current_score', 'desc')->get();
-        });
-        return view('pages.ranking_v2', compact('rankings'));
-    }
-
     public function storeRegistration(Request $request)
     {
         $validated = $request->validate([

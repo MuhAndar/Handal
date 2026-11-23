@@ -119,6 +119,15 @@
                         class="bi bi-question-circle-fill text-lg {{ request()->routeIs('admin.questions.*') ? 'text-white' : 'group-hover:text-purple-400' }}"></i>
                     <span>Bank Pertanyaan</span>
                 </a>
+
+                <div class="px-3 mt-8 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Kompetisi</div>
+
+                <a href="{{ route('admin.speed_coding.index') }}"
+                    class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-all duration-200 group
+                   {{ request()->routeIs('admin.speed_coding.*') ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/25' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
+                    <i class="bi bi-lightning-charge-fill text-lg {{ request()->routeIs('admin.speed_coding.*') ? 'text-slate-950' : 'group-hover:text-amber-400' }}"></i>
+                    <span>Speed Coding</span>
+                </a>
             @endif
 
         </nav>
@@ -153,6 +162,42 @@
         @yield('content')
     </main>
 
+    {{-- ========================================================================= --}}
+    {{-- HANDAL BRANDED CUSTOM DIALOG MODAL (PENGGANTI POPUP BROWSER NATIVE ALERT / CONFIRM) --}}
+    {{-- ========================================================================= --}}
+    <div id="handalModalDialog" class="hidden fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 transition-opacity duration-200 opacity-0">
+        <div id="handalModalCard" class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 text-center transform scale-95 transition-transform duration-200 space-y-4">
+            
+            {{-- Ikon Status Dinamis --}}
+            <div id="handalModalIconContainer" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg transition-colors">
+                <i id="handalModalIcon" class="bi bi-shield-check"></i>
+            </div>
+
+            {{-- Teks & Pesan --}}
+            <div>
+                <h3 id="handalModalTitle" class="text-lg font-black text-slate-800 leading-snug mb-1.5">
+                    Konfirmasi Tindakan
+                </h3>
+                <p id="handalModalMessage" class="text-xs text-slate-600 leading-relaxed font-medium">
+                    Pesan dialog konfirmasi.
+                </p>
+            </div>
+
+            {{-- Tombol Tindakan --}}
+            <div class="flex items-center gap-2 pt-2">
+                <button type="button" id="handalModalCancelBtn"
+                        class="flex-1 py-2.5 px-4 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs border border-slate-200 transition-colors">
+                    Batal
+                </button>
+                <button type="button" id="handalModalConfirmBtn"
+                        class="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all">
+                    Lanjutkan
+                </button>
+            </div>
+
+        </div>
+    </div>
+
     <script>
         const sidebar = document.getElementById('sidebar');
         const overlay = document.getElementById('sidebarOverlay');
@@ -173,6 +218,90 @@
             overlay.classList.add('opacity-0');
             setTimeout(() => overlay.classList.add('hidden'), 300);
         }
+
+        // =========================================================================
+        // HANDAL GLOBAL DIALOG API (PENGGANTI POPUP BROWSER NATIVE)
+        // =========================================================================
+        window.handalConfirm = function(options = {}) {
+            return new Promise((resolve) => {
+                const title = options.title || 'Konfirmasi Tindakan';
+                const message = options.message || options.text || '';
+                const confirmText = options.confirmText || 'Lanjutkan';
+                const cancelText = options.cancelText || 'Batal';
+                const type = options.type || 'info'; // info | warning | danger | success
+
+                const modal = document.getElementById('handalModalDialog');
+                const card = document.getElementById('handalModalCard');
+                const iconContainer = document.getElementById('handalModalIconContainer');
+                const icon = document.getElementById('handalModalIcon');
+                const titleEl = document.getElementById('handalModalTitle');
+                const msgEl = document.getElementById('handalModalMessage');
+                const confirmBtn = document.getElementById('handalModalConfirmBtn');
+                const cancelBtn = document.getElementById('handalModalCancelBtn');
+
+                titleEl.innerText = title;
+                msgEl.innerText = message;
+                confirmBtn.innerText = confirmText;
+                cancelBtn.innerText = cancelText;
+                cancelBtn.classList.remove('hidden');
+
+                if (type === 'danger') {
+                    iconContainer.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg bg-red-100 text-red-600 shadow-red-500/15";
+                    icon.className = "bi bi-trash3-fill";
+                    confirmBtn.className = "flex-1 py-2.5 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-500/20 transition-all";
+                } else if (type === 'warning') {
+                    iconContainer.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg bg-amber-100 text-amber-700 shadow-amber-500/15";
+                    icon.className = "bi bi-exclamation-triangle-fill";
+                    confirmBtn.className = "flex-1 py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/20 transition-all";
+                } else if (type === 'success') {
+                    iconContainer.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg bg-emerald-100 text-emerald-600 shadow-emerald-500/15";
+                    icon.className = "bi bi-check-circle-fill";
+                    confirmBtn.className = "flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all";
+                } else {
+                    iconContainer.className = "w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-3xl shadow-lg bg-blue-100 text-blue-600 shadow-blue-500/15";
+                    icon.className = "bi bi-shield-check";
+                    confirmBtn.className = "flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all";
+                }
+
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    card.classList.remove('scale-95');
+                }, 10);
+
+                const handleClose = (result) => {
+                    modal.classList.add('opacity-0');
+                    card.classList.add('scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        resolve(result);
+                    }, 200);
+                };
+
+                confirmBtn.onclick = () => handleClose(true);
+                cancelBtn.onclick = () => handleClose(false);
+            });
+        };
+
+        window.handalAlert = function(options = {}) {
+            return new Promise((resolve) => {
+                const title = options.title || 'Pemberitahuan';
+                const message = options.message || options.text || '';
+                const buttonText = options.buttonText || 'Mengerti';
+                const type = options.type || 'info';
+
+                window.handalConfirm({ title, message, confirmText: buttonText, type }).then(resolve);
+                const cancelBtn = document.getElementById('handalModalCancelBtn');
+                if (cancelBtn) cancelBtn.classList.add('hidden');
+            });
+        };
+
+        window.handalConfirmForm = async function(formElement, message, title = 'Konfirmasi Tindakan', type = 'info') {
+            const confirmed = await window.handalConfirm({ title, message, type });
+            if (confirmed) {
+                formElement.submit();
+            }
+        };
     </script>
 
 </body>

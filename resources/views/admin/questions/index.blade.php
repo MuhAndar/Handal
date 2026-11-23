@@ -110,7 +110,7 @@
                                         <i class="bi bi-pencil-fill text-sm"></i>
                                     </a>
                                     <form action="{{ route('admin.questions.destroy', $q->id) }}" method="POST"
-                                        onsubmit="return confirm('Hapus pertanyaan ini beserta opsinya?');">
+                                        onsubmit="event.preventDefault(); window.handalConfirmForm(this, 'Hapus pertanyaan ini beserta seluruh opsi jawabannya?', 'Hapus Pertanyaan', 'danger');">
                                         @csrf @method('DELETE')
                                         <button type="submit"
                                             class="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-200 hover:shadow-sm transition-all"

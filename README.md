@@ -61,7 +61,7 @@ $$\text{Skor Akhir} = (0.70 \times \text{Skor Asesmen Mandiri}) + (0.30 \times \
 ### 4. Pilihan Antarmuka Halaman
 * **Beranda Utama (`/`):** Tampilan visual interaktif dengan Hero banner, kartu aksi asesmen, peta sebaran terintegrasi, dan galeri dokumentasi kegiatan.
 * **Beranda Alternatif WPR (`/landing-v2`):** Tampilan bergaya editorial terinspirasi dari *World Population Review*, dilengkapi *sticky sidebar navigation*, kartu perbandingan (*Highest vs Baseline*), dan rincian dokumen metodologi.
-* **Leaderboard (`/ranking-sekolah` & `/ranking-v2`):** Peringkat dinamis dengan rincian perolehan nilai sekolah secara transparan.
+* **Leaderboard (`/ranking-sekolah`):** Peringkat dinamis dengan rincian perolehan nilai sekolah secara transparan.
 
 ---
 
