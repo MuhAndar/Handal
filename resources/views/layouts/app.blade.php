@@ -133,12 +133,40 @@
                                     <i class="bi bi-person-circle"></i> Profil
                                 </a>
                             </div>
+                        @elseif (Auth::user()->role === 'admin')
+                            <div
+                                class="inline-flex items-center gap-1 {{ $isDarkNavbar ? 'bg-slate-900/90 border-slate-700/80' : 'bg-blue-800/40 border-blue-400/30' }} backdrop-blur-md rounded-full p-1 border shadow-inner">
+                                <a href="{{ route('admin.dashboard') }}"
+                                    class="px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
+                                   {{ request()->routeIs('admin.dashboard') ? ($isDarkNavbar ? 'bg-amber-400 text-slate-950 shadow-md font-black' : 'bg-white text-blue-600 shadow-md') : ($isDarkNavbar ? 'text-slate-300 hover:bg-slate-800 hover:text-white' : 'text-blue-100 hover:bg-white/10 hover:text-white') }}">
+                                    <i class="bi bi-grid-1x2-fill"></i> Panel Admin
+                                </a>
+                            </div>
+                        @elseif (Auth::user()->role === 'validator')
+                            <div
+                                class="inline-flex items-center gap-1 {{ $isDarkNavbar ? 'bg-slate-900/90 border-slate-700/80' : 'bg-blue-800/40 border-blue-400/30' }} backdrop-blur-md rounded-full p-1 border shadow-inner">
+                                <a href="{{ route('validator.dashboard') }}"
+                                    class="px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 flex items-center gap-2
+                                   {{ request()->routeIs('validator.dashboard') ? ($isDarkNavbar ? 'bg-amber-400 text-slate-950 shadow-md font-black' : 'bg-white text-blue-600 shadow-md') : ($isDarkNavbar ? 'text-slate-300 hover:bg-slate-800 hover:text-white' : 'text-blue-100 hover:bg-white/10 hover:text-white') }}">
+                                    <i class="bi bi-shield-check"></i> Panel Validator
+                                </a>
+                            </div>
                         @endif
 
                         <div class="h-6 w-px {{ $isDarkNavbar ? 'bg-slate-700' : 'bg-blue-400' }} mx-2"></div>
 
                         <div class="flex items-center gap-3">
-                            <span class="text-sm font-medium {{ $isDarkNavbar ? 'text-slate-200' : 'text-blue-50' }}">{{ Auth::user()->name }}</span>
+                            <a href="{{ route('dashboard') }}"
+                                class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full {{ $isDarkNavbar ? 'bg-slate-800/90 hover:bg-slate-700 text-slate-200 border-slate-700' : 'bg-white/10 hover:bg-white/20 text-white border-white/20' }} border transition-all duration-200 shadow-xs group"
+                                title="Klik untuk membuka {{ Auth::user()->role === 'admin' ? 'Panel Admin' : (Auth::user()->role === 'validator' ? 'Panel Validator' : 'Dashboard') }}">
+                                <span class="w-6 h-6 rounded-full {{ Auth::user()->role === 'admin' ? 'bg-amber-400 text-slate-950' : (Auth::user()->role === 'validator' ? 'bg-emerald-400 text-slate-950' : 'bg-blue-400 text-white') }} flex items-center justify-center font-black text-xs">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </span>
+                                <span class="text-sm font-bold group-hover:underline">{{ Auth::user()->name }}</span>
+                                <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider rounded-full {{ Auth::user()->role === 'admin' ? 'bg-amber-400/25 text-amber-300 border border-amber-400/30' : (Auth::user()->role === 'validator' ? 'bg-emerald-400/25 text-emerald-300 border border-emerald-400/30' : 'bg-blue-300/20 text-blue-100 border border-blue-200/30') }}">
+                                    {{ Auth::user()->role }}
+                                </span>
+                            </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
@@ -210,18 +238,37 @@
                 </div>
 
                 @auth
-                    <div class="flex items-center gap-3 mb-4 px-2">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 mb-4 px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/15 transition-all">
                         <div
-                            class="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-lg">
-                            {{ substr(Auth::user()->name, 0, 1) }}
+                            class="w-10 h-10 rounded-full {{ Auth::user()->role === 'admin' ? 'bg-amber-400 text-slate-950' : (Auth::user()->role === 'validator' ? 'bg-emerald-400 text-slate-950' : 'bg-blue-500 text-white') }} flex items-center justify-center font-black text-lg shadow-sm flex-shrink-0">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                         </div>
-                        <div>
-                            <p class="text-white font-bold">{{ Auth::user()->name }}</p>
-                            <p class="text-blue-200 text-xs">{{ Auth::user()->email }}</p>
+                        <div class="overflow-hidden">
+                            <p class="text-white font-bold flex items-center gap-2">
+                                <span class="truncate">{{ Auth::user()->name }}</span>
+                                <span class="px-2 py-0.5 text-[9px] font-black uppercase rounded-full {{ Auth::user()->role === 'admin' ? 'bg-amber-400 text-slate-950' : (Auth::user()->role === 'validator' ? 'bg-emerald-400 text-slate-950' : 'bg-white/20 text-white') }}">
+                                    {{ Auth::user()->role }}
+                                </span>
+                            </p>
+                            <p class="text-blue-200 text-xs truncate">{{ Auth::user()->email }}</p>
                         </div>
-                    </div>
+                    </a>
 
-                    @if (Auth::user()->role === 'school')
+                    @if (Auth::user()->role === 'admin')
+                        <a href="{{ route('admin.dashboard') }}"
+                            class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-amber-300 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
+                            <i class="bi bi-grid-1x2-fill mr-2"></i> Panel Admin
+                        </a>
+                        <a href="{{ route('admin.speed_coding.index') }}"
+                            class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
+                            <i class="bi bi-lightning-charge-fill mr-2"></i> Kelola Speed Coding
+                        </a>
+                    @elseif (Auth::user()->role === 'validator')
+                        <a href="{{ route('validator.dashboard') }}"
+                            class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-emerald-300 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
+                            <i class="bi bi-shield-check mr-2"></i> Panel Validator
+                        </a>
+                    @elseif (Auth::user()->role === 'school')
                         <a href="{{ route('school.dashboard') }}"
                             class="block px-4 py-3 rounded-xl {{ $isDarkNavbar ? 'bg-slate-800 text-amber-300 border-slate-700 hover:bg-slate-700' : 'bg-blue-800 text-white border-blue-600 hover:bg-blue-900' }} font-bold transition-colors border">
                             <i class="bi bi-grid-fill mr-2"></i> Dashboard

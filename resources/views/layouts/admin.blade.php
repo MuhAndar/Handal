@@ -130,6 +130,20 @@
                 </a>
             @endif
 
+            <div class="px-3 mt-8 mb-3 text-[11px] font-bold text-slate-500 uppercase tracking-widest">Portal Publik</div>
+
+            <a href="{{ route('landing') }}" target="_blank"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200 group">
+                <i class="bi bi-box-arrow-up-right text-base group-hover:text-blue-400"></i>
+                <span>Lihat Beranda Web</span>
+            </a>
+
+            <a href="{{ route('ranking.page') }}" target="_blank"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200 group">
+                <i class="bi bi-trophy-fill text-base group-hover:text-amber-400"></i>
+                <span>Leaderboard Sekolah</span>
+            </a>
+
         </nav>
 
         <div class="p-4 border-t border-slate-800 bg-slate-900/50">
