@@ -11,9 +11,15 @@
                     Kelola verifikasi final, pengiriman akun via email, dan tautan cadangan aktivasi (anti-spam).
                 </p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold">
-                    <i class="bi bi-envelope-check-fill text-blue-600"></i> SMTP: {{ config('mail.mailers.smtp.host') }}:{{ config('mail.mailers.smtp.port') }}
+                    <i class="bi bi-key-fill text-blue-600"></i> Siap Terbit: {{ $registrations->count() }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold">
+                    <i class="bi bi-hourglass-split text-amber-600"></i> Antrean Validator: {{ $pendingRegistrations->count() }}
+                </span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold">
+                    <i class="bi bi-envelope-check-fill text-slate-500"></i> SMTP: {{ config('mail.mailers.smtp.host') }}:{{ config('mail.mailers.smtp.port') }}
                 </span>
             </div>
         </div>
@@ -188,6 +194,83 @@
                             <td colspan="4" class="px-6 py-10 text-center text-slate-400">
                                 <i class="bi bi-inbox text-3xl mb-2 block text-slate-300"></i>
                                 Tidak ada data pendaftaran yang sedang menunggu persetujuan admin saat ini.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- TABEL: PENDAFTARAN BARU MENUNGGU VERIFIKASI VALIDATOR --}}
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 bg-amber-50/60 border-b border-amber-200/80 flex items-center justify-between">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="bi bi-hourglass-split text-amber-600"></i> Pendaftaran Masuk (Antrean Verifikasi Validator)
+                    </h3>
+                    <p class="text-xs text-slate-500">
+                        Berkas pendaftaran baru ini sedang menunggu peninjauan kelayakan oleh Tim Validator sebelum dapat diterbitkan akunnya.
+                    </p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
+                    {{ $pendingRegistrations->count() }} Pendaftaran
+                </span>
+            </div>
+
+            <table class="w-full text-left">
+                <thead class="bg-slate-100/70 text-slate-600 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-6 py-3.5 font-bold">Nama Sekolah & Lokasi</th>
+                        <th class="px-6 py-3.5 font-bold">Email & Kontak PIC</th>
+                        <th class="px-6 py-3.5 font-bold">NPSN</th>
+                        <th class="px-6 py-3.5 font-bold text-center">Status</th>
+                        <th class="px-6 py-3.5 font-bold text-right">Aksi Admin</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    @forelse($pendingRegistrations as $pReg)
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800">{{ $pReg->school_name }}</div>
+                                <div class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                    <span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold">{{ $pReg->jenjang }}</span>
+                                    <span>{{ $pReg->city }}, {{ $pReg->province }}</span>
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4">
+                                <div class="font-mono text-xs text-slate-700 font-medium">{{ $pReg->email }}</div>
+                                <div class="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                                    <i class="bi bi-telephone text-slate-400"></i> {{ $pReg->contact_number ?? '-' }}
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 font-mono text-xs text-slate-600">
+                                {{ $pReg->npsn }}
+                            </td>
+
+                            <td class="px-6 py-4 text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <i class="bi bi-clock"></i> Antrean Validator
+                                </span>
+                            </td>
+
+                            <td class="px-6 py-4 text-right">
+                                <form action="{{ route('admin.registrations.verify_directly', $pReg->id) }}" method="POST"
+                                      onsubmit="return confirm('Verifikasi pendaftaran {{ $pReg->school_name }} langsung oleh Admin? Status akan berubah menjadi terverifikasi dan langsung siap diterbitkan akunnya.');">
+                                    @csrf
+                                    <button type="submit"
+                                        class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs shadow-xs transition-all inline-flex items-center gap-1.5">
+                                        <i class="bi bi-check2-circle"></i> Verifikasi Langsung
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-slate-400">
+                                <i class="bi bi-check-circle text-2xl mb-1 block text-emerald-500"></i>
+                                Tidak ada pendaftaran baru yang sedang menunggu antrean validator.
                             </td>
                         </tr>
                     @endforelse

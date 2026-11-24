@@ -78,6 +78,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/registrations-verified', [RegistrationController::class, 'index'])
             ->name('registrations.index');
 
+        Route::post('/registrations/verify-directly/{id}', [RegistrationController::class, 'verifyDirectly'])
+            ->name('registrations.verify_directly');
+
         Route::post('/registrations/create-account/{id}', [RegistrationController::class, 'createAccount'])
             ->name('registrations.create');
 

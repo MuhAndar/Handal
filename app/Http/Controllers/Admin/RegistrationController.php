@@ -18,8 +18,20 @@ class RegistrationController extends Controller
     public function index()
     {
         $registrations = Registration::where('status', 'verified')->latest()->get();
+        $pendingRegistrations = Registration::where('status', 'pending')->latest()->get();
         $approvedRegistrations = Registration::where('status', 'approved')->latest()->take(10)->get();
-        return view('admin.registrations.index', compact('registrations', 'approvedRegistrations'));
+        return view('admin.registrations.index', compact('registrations', 'pendingRegistrations', 'approvedRegistrations'));
+    }
+
+    /**
+     * Verifikasi pendaftaran langsung oleh Admin (Bypass antrean validator jika mendesak).
+     */
+    public function verifyDirectly($id)
+    {
+        $reg = Registration::findOrFail($id);
+        $reg->update(['status' => 'verified']);
+
+        return back()->with('success', "Pendaftaran sekolah {$reg->school_name} berhasil diverifikasi langsung oleh Admin dan kini siap diterbitkan akunnya.");
     }
 
     public function createAccount($id)
