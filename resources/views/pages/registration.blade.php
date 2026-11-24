@@ -434,35 +434,39 @@
             const oldDistrict = "{{ old('district') }}";
             const oldVillage = "{{ old('village') }}";
 
-            // Fetch Provinsi dari API / fallback file JSON lokal
+            // Fetch data wilayah: utamakan file JSON lokal untuk keandalan maksimal tanpa kendala CORS/jaringan
             async function fetchProvinces() {
                 try {
-                    let res = await fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json');
-                    if (!res.ok) throw new Error();
-                    return await res.json();
-                } catch (e) {
                     let localRes = await fetch('/data/wilayah/provinces.json');
-                    return await localRes.json();
-                }
+                    if (localRes.ok) return await localRes.json();
+                } catch (e) {}
+                let res = await fetch('https://emsifa.github.io/api-wilayah-indonesia/api/provinces.json');
+                return await res.json();
             }
 
             async function fetchRegencies(provId) {
                 try {
-                    let res = await fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${provId}.json`);
-                    if (!res.ok) throw new Error();
-                    return await res.json();
-                } catch (e) {
                     let localRes = await fetch(`/data/wilayah/regencies_${provId}.json`);
-                    return await localRes.json();
-                }
+                    if (localRes.ok) return await localRes.json();
+                } catch (e) {}
+                let res = await fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/regencies/${provId}.json`);
+                return await res.json();
             }
 
             async function fetchDistricts(regId) {
+                try {
+                    let localRes = await fetch(`/data/wilayah/districts_${regId}.json`);
+                    if (localRes.ok) return await localRes.json();
+                } catch (e) {}
                 let res = await fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/districts/${regId}.json`);
                 return await res.json();
             }
 
             async function fetchVillages(disId) {
+                try {
+                    let localRes = await fetch(`/data/wilayah/villages_${disId}.json`);
+                    if (localRes.ok) return await localRes.json();
+                } catch (e) {}
                 let res = await fetch(`https://emsifa.github.io/api-wilayah-indonesia/api/villages/${disId}.json`);
                 return await res.json();
             }

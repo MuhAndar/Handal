@@ -42,7 +42,8 @@ class SpeedCodingController extends Controller
         }
 
         $isAdmin = Auth::check() && Auth::user()->role === 'admin';
-        $allowPreview = $isAdmin || $request->has('preview');
+        // Mode pratinjau tabel hanya jika admin secara eksplisit meminta parameter ?preview=1
+        $allowPreview = $isAdmin && $request->boolean('preview');
 
         $competitions = [];
 
