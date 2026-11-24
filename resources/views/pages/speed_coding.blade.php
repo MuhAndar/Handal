@@ -98,9 +98,61 @@
         </div>
 
         {{-- ========================================================= --}}
+        {{-- BANNER INFORMASI & KONTROL MODE PRATINJAU ADMIN           --}}
+        {{-- ========================================================= --}}
+        @if ($isAdmin)
+            <div x-show="!activeCompetition.is_published" class="max-w-5xl mx-auto mb-8 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-amber-500/15 via-slate-900 to-amber-500/10 border-2 border-amber-400/40 shadow-xl backdrop-blur-md">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 text-lg shrink-0 mt-0.5">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap mb-1">
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-amber-400 text-slate-950">
+                                    Mode Pratinjau Administrator
+                                </span>
+                                <span class="text-xs text-amber-300 font-semibold" x-text="'Edisi ' + selectedYear + ' • Berstatus Draf (Coming Soon)'"></span>
+                            </div>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                                Halaman edisi ini belum dipublikasikan ke publik. Pengunjung biasa melihat halaman ini sebagai <strong>Coming Soon</strong>. Anda sedang mengakses pratinjau data &amp; susunan tabel sebagai <strong>Administrator</strong>.
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Kontrol Sakelar Tampilan & Shortcut Panel Admin --}}
+                    <div class="flex items-center gap-2 self-start md:self-center shrink-0 flex-wrap">
+                        {{-- Toggle Mode: Pratinjau Tabel vs Tampilan Publik --}}
+                        <div class="inline-flex p-1 rounded-xl bg-slate-950/80 border border-slate-700/80 text-xs">
+                            <button type="button" @click="adminViewMode = 'preview'"
+                                class="px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5"
+                                :class="adminViewMode === 'preview' ? 'bg-amber-400 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'">
+                                <i class="bi bi-table"></i>
+                                <span>Pratinjau Tabel</span>
+                            </button>
+                            <button type="button" @click="adminViewMode = 'public'"
+                                class="px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1.5"
+                                :class="adminViewMode === 'public' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-400 hover:text-white'">
+                                <i class="bi bi-eye"></i>
+                                <span>Simulasi Publik</span>
+                            </button>
+                        </div>
+
+                        {{-- Tombol Langsung ke Panel Admin --}}
+                        <a :href="'{{ route('admin.speed_coding.index') }}?year=' + selectedYear"
+                           class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-semibold border border-slate-700 transition-all flex items-center gap-1.5 shadow-sm">
+                            <i class="bi bi-gear-fill"></i>
+                            <span>Panel Admin</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ========================================================= --}}
         {{-- BLOK COMING SOON JIKA EDISI BELUM DIPUBLIKASIKAN          --}}
         {{-- ========================================================= --}}
-        <template x-if="!activeCompetition.is_published && !{{ $allowPreview ? 'true' : 'false' }}">
+        <template x-if="!activeCompetition.is_published && (!{{ $isAdmin ? 'true' : 'false' }} || adminViewMode === 'public')">
             <div class="max-w-3xl mx-auto my-12 p-8 sm:p-14 text-center rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-md">
                 <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500/20 to-blue-500/20 border border-amber-400/30 flex items-center justify-center text-3xl mb-6 shadow-inner">
                     ⏳
@@ -125,9 +177,13 @@
                         <span>Lihat Hasil Juara Edisi 2025 &rarr;</span>
                     </button>
                     @if ($isAdmin)
-                        <a href="{{ route('admin.speed_coding.index') }}?year=2026"
+                        <button type="button" @click="adminViewMode = 'preview'"
+                           class="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-amber-400/20 transition-all flex items-center gap-2">
+                            <i class="bi bi-table"></i> Buka Pratinjau Tabel (Admin)
+                        </button>
+                        <a :href="'{{ route('admin.speed_coding.index') }}?year=' + selectedYear"
                            class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs sm:text-sm font-semibold border border-slate-700 transition-all flex items-center gap-2">
-                            <i class="bi bi-gear-fill"></i> Panel Admin Edisi 2026
+                            <i class="bi bi-gear-fill"></i> Panel Admin Edisi <span x-text="selectedYear"></span>
                         </a>
                     @endif
                 </div>
@@ -137,13 +193,18 @@
         {{-- ========================================================= --}}
         {{-- VIEW DATA LOMBA (PODIUM, HARAPAN & TABEL)                --}}
         {{-- ========================================================= --}}
-        <template x-if="activeCompetition.is_published || {{ $allowPreview ? 'true' : 'false' }}">
+        <template x-if="activeCompetition.is_published || ({{ $isAdmin ? 'true' : 'false' }} && adminViewMode === 'preview')">
             <div>
-                {{-- Banner Mode Pratinjau Admin jika unpublished --}}
-                <template x-if="!activeCompetition.is_published && {{ $allowPreview ? 'true' : 'false' }}">
-                    <div class="max-w-4xl mx-auto mb-8 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs text-center flex items-center justify-center gap-2">
-                        <i class="bi bi-eye-fill"></i>
-                        <span><strong>Mode Pratinjau Admin:</strong> Edisi ini berstatus Draf (Coming Soon) bagi publik, namun dapat Anda tinjau karena Anda login sebagai Administrator.</span>
+                {{-- Banner Info Admin jika belum ada peserta --}}
+                <template x-if="!activeCompetition.is_published && (!activeCompetition.participants || activeCompetition.participants.length === 0)">
+                    <div class="max-w-5xl mx-auto mb-8 p-4 rounded-2xl bg-blue-500/10 border border-blue-400/30 text-blue-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div class="flex items-center gap-2.5">
+                            <i class="bi bi-info-circle-fill text-blue-400 text-base shrink-0"></i>
+                            <span>Belum ada data peserta yang dimasukkan untuk edisi <strong x-text="selectedYear"></strong>. Publik saat ini hanya melihat status <strong>Coming Soon</strong>. Gunakan Panel Admin untuk menginput atau mengimpor peserta.</span>
+                        </div>
+                        <a :href="'{{ route('admin.speed_coding.index') }}?year=' + selectedYear" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs whitespace-nowrap flex items-center gap-1.5 transition-all self-end sm:self-auto shrink-0 shadow-md">
+                            <i class="bi bi-plus-circle-fill"></i> Input Peserta
+                        </a>
                     </div>
                 </template>
 
@@ -598,6 +659,7 @@
             competitions: @json($competitions),
             search: '',
             filterStage: 'KUALIFIKASI', // Babak Kualifikasi aktif secara default di sebelah kiri
+            adminViewMode: 'preview', // 'preview' atau 'public' untuk peninjauan admin
 
             initTable() {
                 this.$nextTick(() => {
