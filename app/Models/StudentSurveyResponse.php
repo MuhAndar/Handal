@@ -17,6 +17,7 @@ class StudentSurveyResponse extends Model
         'class_grade',
         'score',
         'ip_address',
+        'device_token',
     ];
 
     /**

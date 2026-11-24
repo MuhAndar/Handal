@@ -151,14 +151,31 @@
                         </div>
                         <h2 class="text-3xl md:text-4xl font-extrabold mb-3">Menunggu Verifikasi</h2>
                         <p class="text-blue-100 text-lg mb-8 max-w-xl mx-auto leading-relaxed">
-                            Asesmen Anda sedang ditinjau oleh tim validator. Skor dan sertifikat akan muncul setelah proses
-                            selesai.
+                            Asesmen Anda sedang ditinjau oleh tim validator. Skor resmi dan sertifikat akan diterbitkan setelah proses verifikasi selesai.
                         </p>
                         <div
                             class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-2xl text-sm font-medium shadow-sm cursor-default">
                             <span>Status:</span>
-                            <span class="font-bold text-yellow-300 tracking-wide">Dalam Antrean</span>
+                            <span class="font-bold text-yellow-300 tracking-wide">Dalam Antrean Validator</span>
                         </div>
+                    </div>
+                @elseif($surveyStatus === 'rejected')
+                    <div class="flex flex-col items-center py-4">
+                        <div
+                            class="w-20 h-20 bg-amber-500/25 border-2 border-amber-300/40 rounded-full flex items-center justify-center mb-5 backdrop-blur-md shadow-lg shadow-amber-900/20 animate-pulse">
+                            <i class="bi bi-exclamation-triangle-fill text-4xl text-amber-300"></i>
+                        </div>
+                        <div class="inline-flex items-center gap-2 bg-amber-400/20 text-amber-200 border border-amber-300/30 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
+                            <i class="bi bi-arrow-counterclockwise"></i> Perlu Revisi / Perbaikan
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-black mb-3 text-white">Asesmen Memerlukan Revisi</h2>
+                        <p class="text-blue-100 text-base md:text-lg mb-8 max-w-xl mx-auto leading-relaxed">
+                            Tim validator telah meninjau isian asesmen mandiri sekolah Anda dan memberikan catatan koreksi. Silakan periksa dan perbaiki jawaban pada indikator yang ditandai.
+                        </p>
+                        <a href="{{ route('school.survey.start') }}"
+                            class="inline-flex items-center bg-amber-400 hover:bg-amber-300 text-slate-900 px-8 py-3.5 rounded-full font-black text-base shadow-xl shadow-amber-500/25 hover:-translate-y-1 transition-all">
+                            <i class="bi bi-pencil-square mr-2 text-lg"></i> Perbaiki Asesmen Sekarang
+                        </a>
                     </div>
                 @elseif($surveyStatus === 'draft')
                     <h2 class="text-3xl font-extrabold mb-4">Lanjutkan Asesmen?</h2>
@@ -184,6 +201,24 @@
 
             </div>
         </div>
+
+        @if ($surveyStatus === 'verified' && $school->student_respondents_count < 10)
+            <div class="mb-8 p-5 rounded-3xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/90 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl flex-shrink-0 shadow-sm shadow-amber-500/20">
+                        <i class="bi bi-info-circle-fill"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-black text-amber-950 flex items-center gap-2">
+                            Asesmen Mandiri Terverifikasi (Skor: {{ number_format($school->self_assessment_score, 1) }}) — Menunggu Kuorum Survei Siswa
+                        </h4>
+                        <p class="text-xs text-amber-900/90 mt-1 leading-relaxed">
+                            Nilai Asesmen Mandiri sekolah Anda (bobot 70%) telah disahkan oleh tim validator. Sesuai metodologi evaluasi HANDAL, <strong>Skor Komposit Akhir dan Peringkat Publik resmi baru akan diterbitkan setelah survei siswa mencapai minimal 10 responden</strong> (Saat ini: <strong>{{ $school->student_respondents_count }}/10 Responden</strong>). Silakan bagikan tautan atau cetak QR Code di bawah.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         {{-- KARTU GENERATOR SURVEI SISWA (BOBOT 30%) --}}
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-10 overflow-hidden"
@@ -237,25 +272,52 @@
                 <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                     <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Partisipasi Siswa</span>
                     <span class="text-2xl font-black text-slate-800">{{ $school->student_respondents_count }}</span>
-                    <span class="text-xs text-slate-500 block mt-0.5">Responden</span>
+                    <span class="text-xs text-slate-500 block mt-0.5">Minimal 10 Siswa</span>
                 </div>
 
                 <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100">
-                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">Skor Survei Siswa</span>
+                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider block mb-1">Skor Survei Siswa (30%)</span>
                     <span class="text-2xl font-black text-indigo-600">{{ number_format($school->student_survey_score, 1) }}</span>
                     <span class="text-xs text-indigo-500 block mt-0.5">Skala 0 - 100</span>
                 </div>
 
                 <div class="p-4 rounded-2xl bg-blue-50/50 border border-blue-100">
-                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">Asesmen Mandiri</span>
-                    <span class="text-2xl font-black text-blue-600">{{ number_format($school->self_assessment_score, 1) }}</span>
-                    <span class="text-xs text-blue-500 block mt-0.5">Bobot 70%</span>
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-1">Asesmen Mandiri (70%)</span>
+                    @if ($surveyStatus === 'verified')
+                        <span class="text-2xl font-black text-blue-600">{{ number_format($school->self_assessment_score, 1) }}</span>
+                        <span class="text-xs text-blue-600 font-bold block mt-0.5"><i class="bi bi-check-circle-fill"></i> Terverifikasi Validator</span>
+                    @elseif ($surveyStatus === 'submitted')
+                        <span class="text-lg font-black text-amber-600">Menunggu</span>
+                        <span class="text-xs text-amber-600 block mt-0.5">Verifikasi Validator</span>
+                    @elseif ($surveyStatus === 'rejected')
+                        <span class="text-lg font-black text-rose-600">Perlu Revisi</span>
+                        <span class="text-xs text-rose-500 block mt-0.5">Lihat Catatan Validator</span>
+                    @else
+                        <span class="text-2xl font-black text-slate-400">-</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">Bobot 70%</span>
+                    @endif
                 </div>
 
                 <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100">
                     <span class="text-xs font-bold text-emerald-500 uppercase tracking-wider block mb-1">Skor Komposit Akhir</span>
-                    <span class="text-2xl font-black text-emerald-700">{{ number_format($school->current_score, 1) }}</span>
-                    <span class="text-xs text-emerald-600 block mt-0.5">Indeks HANDAL</span>
+                    @php
+                        $isAssessmentVerified = ($surveyStatus === 'verified');
+                        $isSurveyFulfilled = ($school->student_respondents_count >= 10);
+                    @endphp
+
+                    @if ($isAssessmentVerified && $isSurveyFulfilled)
+                        <span class="text-2xl font-black text-emerald-700">{{ number_format($school->current_score, 1) }}</span>
+                        <span class="text-xs text-emerald-600 font-bold block mt-0.5"><i class="bi bi-shield-check"></i> Indeks HANDAL Resmi</span>
+                    @elseif ($isAssessmentVerified && !$isSurveyFulfilled)
+                        <span class="text-lg font-black text-amber-600">Menunggu</span>
+                        <span class="text-xs text-amber-600 block mt-0.5">Menunggu Hasil Survei Siswa</span>
+                    @elseif (!$isAssessmentVerified && $isSurveyFulfilled)
+                        <span class="text-lg font-black text-amber-600">Menunggu</span>
+                        <span class="text-xs text-amber-600 block mt-0.5">Menunggu Hasil Asesmen Mandiri</span>
+                    @else
+                        <span class="text-2xl font-black text-slate-400">-</span>
+                        <span class="text-xs text-slate-400 block mt-0.5">Menunggu Asesmen & Survei</span>
+                    @endif
                 </div>
             </div>
 
@@ -279,12 +341,13 @@
                         </button>
                     </div>
 
-                    <div class="flex items-center gap-3 pt-1">
+                    <div class="flex items-center gap-3 pt-1 flex-wrap">
                         <button type="button" @click="showQr = !showQr"
-                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5">
+                            class="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 transition-colors">
                             <i class="bi bi-qr-code"></i>
                             <span x-text="showQr ? 'Sembunyikan QR Code' : 'Tampilkan / Cetak QR Code'"></span>
                         </button>
+
                         <span class="text-slate-300">&bull;</span>
                         <a href="{{ route('student.survey.show', $school->survey_code) }}" target="_blank"
                             class="text-xs font-bold text-slate-500 hover:text-slate-800 flex items-center gap-1">
@@ -296,12 +359,27 @@
                 {{-- QR CODE DISPLAY --}}
                 <div class="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100"
                      x-show="showQr" x-transition>
-                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-2">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode(route('student.survey.show', $school->survey_code)) }}"
-                             alt="QR Code Survei Siswa" class="w-32 h-32 object-contain">
+                    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-2.5">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode(route('student.survey.show', $school->survey_code)) }}"
+                             alt="QR Code Survei Siswa" class="w-36 h-36 object-contain">
                     </div>
-                    <span class="text-[11px] font-bold text-slate-600 text-center">Scan untuk Mengisi</span>
-                    <span class="text-[10px] text-slate-400 text-center">Cocok ditampilkan di layar proyektor kelas</span>
+                    
+                    <div class="flex items-center gap-2 mb-2">
+                        <button type="button"
+                            onclick="downloadQrCode('https://api.qrserver.com/v1/create-qr-code/?size=800x800&data={{ urlencode(route('student.survey.show', $school->survey_code)) }}', 'qrcode-survei-{{ $school->npsn ?? $school->survey_code }}.png')"
+                            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all hover:-translate-y-0.5">
+                            <i class="bi bi-download"></i> Unduh Gambar QR (.PNG)
+                        </button>
+
+                        <button type="button"
+                            onclick="printQrCode('https://api.qrserver.com/v1/create-qr-code/?size=600x600&data={{ urlencode(route('student.survey.show', $school->survey_code)) }}', '{{ addslashes($school->name) }}', '{{ route('student.survey.show', $school->survey_code) }}')"
+                            class="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1.5 shadow-xs transition-all">
+                            <i class="bi bi-printer"></i> Cetak
+                        </button>
+                    </div>
+
+                    <span class="text-[11px] font-bold text-slate-600 text-center">Scan untuk Mengisi Kuesioner Siswa</span>
+                    <span class="text-[10px] text-slate-400 text-center">Cocok diunduh untuk dibagikan via grup WhatsApp atau dicetak di mading</span>
                 </div>
             </div>
 
@@ -481,4 +559,62 @@
         </div>
 
     </div>
+
+    <script>
+        function downloadQrCode(url, filename) {
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(a);
+                })
+                .catch(() => {
+                    window.open(url, '_blank');
+                });
+        }
+
+        function printQrCode(qrUrl, schoolName, surveyUrl) {
+            const printWindow = window.open('', '', 'width=700,height=800');
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Cetak QR Code Survei - ${schoolName}</title>
+                        <style>
+                            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px; color: #1e293b; background: #fff; }
+                            .card { border: 2px solid #e2e8f0; border-radius: 24px; padding: 36px; max-width: 460px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+                            h2 { margin: 0 0 6px 0; color: #1e3a8a; font-size: 22px; font-weight: 800; }
+                            .badge { display: inline-block; background: #eff6ff; color: #2563eb; padding: 5px 14px; border-radius: 999px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 18px; border: 1px solid #bfdbfe; }
+                            img { width: 250px; height: 250px; margin: 15px auto; display: block; }
+                            .instruction { font-size: 13px; color: #475569; margin-top: 18px; line-height: 1.6; font-weight: 500; }
+                            .url { font-family: monospace; font-size: 12px; background: #f8fafc; padding: 10px 14px; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: 15px; word-break: break-all; color: #334155; font-weight: 600; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="card">
+                            <div class="badge">PLATFORM HANDAL BBLSDM KOMDIGI</div>
+                            <h2>${schoolName}</h2>
+                            <p style="font-size: 13px; color: #64748b; margin: 0 0 10px 0;">Kuesioner Partisipasi Siswa</p>
+                            <img src="${qrUrl}" alt="QR Code Survei Siswa" />
+                            <p class="instruction">Buka kamera smartphone Anda dan pindai (scan) QR Code di atas untuk mengisi survei kesiapan & keamanan digital sekolah.</p>
+                            <div class="url">${surveyUrl}</div>
+                        </div>
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                                setTimeout(() => window.close(), 500);
+                            };
+                        <\/script>
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    </script>
 @endsection

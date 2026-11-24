@@ -77,26 +77,68 @@
         {{-- STATS & YEAR SWITCHER --}}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             
-            {{-- PEMILIH TAHUN/BATCH --}}
-            <div class="md:col-span-4 bg-slate-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
-                <div class="flex items-center gap-2">
-                    <i class="bi bi-calendar3 text-amber-400 text-lg"></i>
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Pilih Edisi / Batch Lomba:</span>
+            {{-- PEMILIH TAHUN/BATCH & STATUS PUBLIKASI --}}
+            <div class="md:col-span-4 bg-slate-900 text-white p-4 sm:p-5 rounded-2xl flex flex-col gap-4 shadow-lg border border-slate-800">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-calendar3 text-amber-400 text-lg"></i>
+                        <span class="text-xs font-bold uppercase tracking-wider text-slate-300">Pilih Edisi / Batch Lomba:</span>
+                    </div>
+
+                    <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+                        @foreach($availableYears as $year)
+                            <a href="{{ route('admin.speed_coding.index', ['year' => $year]) }}"
+                               class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap {{ $selectedYear == $year ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
+                                <i class="bi bi-trophy-fill"></i>
+                                Edisi {{ $year }} ({{ $year == '2026' ? 'Batch 2' : ($year == '2025' ? 'Batch 1' : 'Batch ' . $year) }})
+                            </a>
+                        @endforeach
+
+                        <button type="button" onclick="openNewYearModal()"
+                                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700 transition-all flex items-center gap-1">
+                            <i class="bi bi-plus-circle"></i> Tambah Tahun
+                        </button>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
-                    @foreach($availableYears as $year)
-                        <a href="{{ route('admin.speed_coding.index', ['year' => $year]) }}"
-                           class="px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap {{ $selectedYear == $year ? 'bg-amber-500 text-slate-950 shadow-md font-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700' }}">
-                            <i class="bi bi-trophy-fill"></i>
-                            Edisi {{ $year }} ({{ $year == '2026' ? 'Batch 2' : ($year == '2025' ? 'Batch 1' : 'Batch ' . $year) }})
-                        </a>
-                    @endforeach
+                {{-- PANEL KONTROL STATUS PUBLIKASI EDISI INI --}}
+                <div class="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-slate-400 font-medium">Status Publikasi Edisi {{ $selectedYear }}:</span>
+                        @if ($currentBatch->is_published)
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Telah Dipublikasikan (Live di Halaman Publik)
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+                                <i class="bi bi-hourglass-split text-amber-400"></i>
+                                Mode Draf / "Coming Soon" (Belum Terbit)
+                            </span>
+                        @endif
+                    </div>
 
-                    <button type="button" onclick="openNewYearModal()"
-                            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 text-amber-400 hover:bg-slate-700 border border-slate-700 transition-all flex items-center gap-1">
-                        <i class="bi bi-plus-circle"></i> Tambah Tahun
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <form action="{{ route('admin.speed_coding.toggle_publish', $selectedYear) }}" method="POST" class="inline">
+                            @csrf
+                            @if ($currentBatch->is_published)
+                                <button type="submit"
+                                        class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all font-semibold flex items-center gap-1.5 shadow-sm">
+                                    <i class="bi bi-eye-slash-fill text-amber-400"></i> Tarik ke Draf (Sembunyikan)
+                                </button>
+                            @else
+                                <button type="submit"
+                                        class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+                                    <i class="bi bi-send-check-fill"></i> Publikasikan Edisi Ini Sekarang
+                                </button>
+                            @endif
+                        </form>
+
+                        <a href="{{ route('speed.coding') }}?year={{ $selectedYear }}" target="_blank"
+                           class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-cyan-200 border border-slate-700 transition-all flex items-center gap-1">
+                            <i class="bi bi-box-arrow-up-right"></i> Buka Tampilan Publik
+                        </a>
+                    </div>
                 </div>
             </div>
 

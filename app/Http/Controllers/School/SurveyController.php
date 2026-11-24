@@ -20,9 +20,9 @@ class SurveyController extends Controller
             ->where('year', date('Y'))
             ->first();
 
-        if ($existingSurvey && $existingSurvey->status !== 'draft') {
+        if ($existingSurvey && !in_array($existingSurvey->status, ['draft', 'rejected'])) {
             return redirect()->route('school.dashboard')
-                ->with('error', 'Anda sudah menyelesaikan asesmen tahun ini.');
+                ->with('error', 'Asesmen Anda sedang dalam proses verifikasi atau telah selesai.');
         }
         $survey = Survey::firstOrCreate(
             ['school_id' => $user->school->id, 'year' => date('Y')],
@@ -42,12 +42,12 @@ class SurveyController extends Controller
         $survey = Survey::where('school_id', $user->school->id)
             ->where('year', date('Y'))
             ->first();
-        if ($survey && $survey->status !== 'draft') {
+        if ($survey && !in_array($survey->status, ['draft', 'rejected'])) {
             return redirect()->route('school.dashboard')
                 ->with('error', 'Akses ditolak. Survei sedang dikunci.');
         }
 
-        $categories = SurveyCategory::orderBy('id')->get();
+        $categories = SurveyCategory::with('questions')->orderBy('id')->get();
         if ($stepNumber < 1 || $stepNumber > $categories->count()) {
             return redirect()->route('school.dashboard');
         }
@@ -64,6 +64,7 @@ class SurveyController extends Controller
             'currentStep' => $stepNumber,
             'totalSteps' => $categories->count(),
             'category' => $currentCategory,
+            'allCategories' => $categories,
             'questions' => $currentCategory->questions,
             'existingAnswers' => $existingAnswers
         ]);
@@ -72,10 +73,10 @@ class SurveyController extends Controller
     {
         $user = Auth::user();
 
-        // 1. Cari data survei draft milik sekolah ini
+        // 1. Cari data survei draft/rejected milik sekolah ini
         $survey = Survey::where('school_id', $user->school->id)
             ->where('year', date('Y'))
-            ->where('status', 'draft')
+            ->whereIn('status', ['draft', 'rejected'])
             ->first();
         if (!$survey) {
             return redirect()->route('school.dashboard')
@@ -88,10 +89,13 @@ class SurveyController extends Controller
                     ->first();
 
                 $noteToSave = $existingAnswer ? $existingAnswer->validator_note : null;
+                $isRevised = $existingAnswer ? (bool)$existingAnswer->is_revised : false;
 
-                // Logika Penghapusan Catatan Revisi
-                if ($existingAnswer && $existingAnswer->answer_value != $optionId) {
-                    $noteToSave = null;
+                // Jika soal memiliki catatan validator dan sekolah mengubah jawabannya:
+                if (!empty($noteToSave)) {
+                    if ($existingAnswer && $existingAnswer->answer_value != $optionId) {
+                        $isRevised = true;
+                    }
                 }
 
                 SurveyAnswer::updateOrCreate(
@@ -101,13 +105,40 @@ class SurveyController extends Controller
                     ],
                     [
                         'answer_value'   => $optionId,
-                        'validator_note' => $noteToSave
+                        'validator_note' => $noteToSave,
+                        'is_revised'     => $isRevised,
                     ]
                 );
             }
         }
 
-        // 3. Logika Navigasi
+        // 3. Logika Navigasi & Pengumpulan Langsung
+        if ($request->input('action') === 'submit_final' || $request->has('submit_final')) {
+            $totalQuestionsCount = \App\Models\SurveyQuestion::count();
+            $answeredCount = SurveyAnswer::where('survey_id', $survey->id)
+                ->whereNotNull('answer_value')
+                ->count();
+
+            if ($answeredCount < $totalQuestionsCount) {
+                $unansweredCount = $totalQuestionsCount - $answeredCount;
+                return redirect()->route('school.survey.step', $stepNumber)
+                    ->with('error', "Belum dapat mengumpulkan: Masih ada {$unansweredCount} pertanyaan yang belum Anda jawab. Silakan lengkapi seluruh kategori.");
+            }
+
+            $this->calculateFinalScore($survey);
+            return redirect()->route('school.dashboard')
+                ->with('success', 'Asesmen berhasil dikumpulkan secara lengkap! Menunggu verifikasi dari tim validator.');
+        }
+
+        // Jika pengguna memilih lompat langsung ke kategori tertentu
+        if ($request->filled('jump_to_step')) {
+            $targetStep = (int) $request->jump_to_step;
+            $totalSteps = SurveyCategory::count();
+            if ($targetStep >= 1 && $targetStep <= $totalSteps) {
+                return redirect()->route('school.survey.step', $targetStep);
+            }
+        }
+
         $totalSteps = SurveyCategory::count();
 
         if ($stepNumber < $totalSteps) {
@@ -115,7 +146,7 @@ class SurveyController extends Controller
         } else {
             $this->calculateFinalScore($survey);
             return redirect()->route('school.dashboard')
-                ->with('success', 'Asesmen berhasil disubmit! Nilai sementara Anda sudah keluar.');
+                ->with('success', 'Asesmen berhasil disubmit! Menunggu verifikasi dari tim validator.');
         }
     }
 
@@ -155,11 +186,11 @@ class SurveyController extends Controller
         ]);
 
         if ($survey->school) {
-            $survey->school->self_assessment_score = $selfScore;
+            // Skor resmi hanya akan dipublikasikan setelah disetujui validator
             $survey->school->recalculateOverallScore();
         }
 
-        Cache::forget('school_rankings');
+        \App\Http\Controllers\LandingController::clearLandingCache();
     }
 
     // 5. Menampilkan Hasil (Sudah Diperbaiki Keamanannya)

@@ -35,12 +35,46 @@ class SpeedCodingAdminController extends Controller
             'smp' => $participants->where('jenjang', 'SMP')->count(),
         ];
 
+        $currentBatch = \App\Models\SpeedCodingBatch::firstOrCreate(
+            ['year' => $selectedYear],
+            [
+                'batch_name' => $selectedYear == '2026' ? 'Batch 2' : ($selectedYear == '2025' ? 'Batch 1' : 'Batch ' . $selectedYear),
+                'location' => 'BBLSDM Komdigi Makassar',
+                'is_published' => ($selectedYear == '2025'),
+            ]
+        );
+
         return view('admin.speed_coding.index', compact(
             'participants',
             'availableYears',
             'selectedYear',
-            'stats'
+            'stats',
+            'currentBatch'
         ));
+    }
+
+    /**
+     * Toggle status publikasi edisi (Live vs Draf/Coming Soon).
+     */
+    public function togglePublish(Request $request, $year)
+    {
+        $batch = \App\Models\SpeedCodingBatch::firstOrCreate(
+            ['year' => $year],
+            [
+                'batch_name' => $year == '2026' ? 'Batch 2' : 'Batch 1',
+                'location' => 'BBLSDM Komdigi Makassar',
+                'is_published' => false,
+            ]
+        );
+
+        $batch->is_published = !$batch->is_published;
+        $batch->save();
+
+        $msg = $batch->is_published 
+            ? "Edisi {$year} berhasil DIPUBLIKASIKAN ke publik!" 
+            : "Edisi {$year} berhasil dialihkan ke mode DRAF (Coming Soon).";
+
+        return redirect()->back()->with('success', $msg);
     }
 
     /**

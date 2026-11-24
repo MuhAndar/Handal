@@ -11,7 +11,12 @@ class SurveyAnswer extends Model
         'question_id',
         'answer_value',
         'validator_note', 
-        'verified_score'
+        'verified_score',
+        'is_revised',
+    ];
+
+    protected $casts = [
+        'is_revised' => 'boolean',
     ];
 
     public function survey()

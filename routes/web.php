@@ -100,6 +100,8 @@ Route::middleware(['auth'])->group(function () {
             ->name('speed_coding.destroy');
         Route::post('/speed-coding/import', [SpeedCodingAdminController::class, 'import'])
             ->name('speed_coding.import');
+        Route::post('/speed-coding/{year}/toggle-publish', [SpeedCodingAdminController::class, 'togglePublish'])
+            ->name('speed_coding.toggle_publish');
 
         Route::resource('categories', CategoryController::class);
         Route::resource('questions', QuestionController::class);

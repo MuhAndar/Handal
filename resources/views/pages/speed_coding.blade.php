@@ -3,8 +3,16 @@
 @section('title', 'Pemenang Kompetisi Speed Coding Scratch - HANDAL Sekolah Aman Digital')
 
 @section('content')
+<style>
+    /* Cegah getaran / scrolling liar saat berinteraksi dengan tabel atau input pencarian */
+    html {
+        scroll-behavior: auto !important;
+    }
+</style>
+
 <div class="relative w-full overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 min-h-screen py-12 lg:py-20"
-     x-data="initSpeedCoding()">
+     x-data="initSpeedCoding()"
+     x-init="initTable()">
 
     {{-- DEKORASI LATAR BELAKANG CYBER / NEON GLOW --}}
     <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[500px] bg-blue-600/20 rounded-full blur-[140px] pointer-events-none -z-10"></div>
@@ -39,15 +47,15 @@
                 Ajang kompetisi adu kecepatan logika dan algoritma menggunakan aplikasi <strong>Scratch 3.0</strong>. Perlombaan jenjang <strong>SD (Kelas 5 - 6)</strong> dan <strong>SMP (Kelas 1 - 3)</strong> digabung dalam satu kategori kompetisi dengan dua tahap pengerjaan tantangan: <strong>Babak Kualifikasi</strong> dan <strong>Babak Final</strong>.
             </p>
 
-            {{-- TOMBOL GANTI BATCH (BATCH TAHUN LALU KIRI, BATCH TERBARU KANAN) --}}
+            {{-- TOMBOL GANTI BATCH (BATCH 1 / 2025 DI KIRI, BATCH 2 / 2026 DI KANAN) --}}
             <div class="inline-flex items-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700 shadow-xl backdrop-blur-md">
                 
-                {{-- BATCH 1 (TAHUN LALU - 27 NOVEMBER 2025) DI SEBELAH KIRI --}}
+                {{-- BATCH 1 (EDISI 2025) DI SEBELAH KIRI --}}
                 <button type="button"
-                    @click="selectedYear = '2025'"
-                    class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-2"
-                    :class="selectedYear === '2025' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold shadow-lg shadow-blue-500/30 scale-[1.02]' : 'text-slate-300 hover:text-white hover:bg-slate-800/80'">
-                    <i class="bi bi-clock-history text-white" x-show="selectedYear === '2025'"></i>
+                    @click.prevent="switchYear('2025')"
+                    class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2"
+                    :class="selectedYear === '2025' ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold shadow-lg shadow-blue-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/80'">
+                    <i class="bi bi-trophy-fill text-amber-300" x-show="selectedYear === '2025'"></i>
                     <span>Batch 1 (Edisi 2025)</span>
                     <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase"
                           :class="selectedYear === '2025' ? 'bg-white/20 text-white' : 'bg-slate-800 text-slate-400'">
@@ -55,16 +63,16 @@
                     </span>
                 </button>
 
-                {{-- BATCH 2 (TERBARU - 26 NOVEMBER 2026) DI SEBELAH KANAN --}}
+                {{-- BATCH 2 (EDISI 2026) DI SEBELAH KANAN --}}
                 <button type="button"
-                    @click="selectedYear = '2026'"
-                    class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-300 flex items-center gap-2"
-                    :class="selectedYear === '2026' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-extrabold shadow-lg shadow-amber-500/30 scale-[1.02]' : 'text-slate-300 hover:text-white hover:bg-slate-800/80'">
-                    <i class="bi bi-trophy-fill text-slate-950" x-show="selectedYear === '2026'"></i>
+                    @click.prevent="switchYear('2026')"
+                    class="px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 flex items-center gap-2"
+                    :class="selectedYear === '2026' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-extrabold shadow-lg shadow-amber-500/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/80'">
+                    <i class="bi bi-hourglass-split text-slate-950" x-show="selectedYear === '2026'"></i>
                     <span>Batch 2 (Edisi 2026)</span>
                     <span class="px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase"
                           :class="selectedYear === '2026' ? 'bg-slate-950 text-amber-300' : 'bg-slate-800 text-slate-400'">
-                        Terbaru
+                        <span x-text="activeCompetition.is_published ? 'Terbaru' : 'Coming Soon'"></span>
                     </span>
                 </button>
 
@@ -79,7 +87,7 @@
                 <span>&bull;</span>
                 <span class="flex items-center gap-1.5">
                     <i class="bi bi-geo-alt-fill text-rose-400"></i>
-                    <span>Kantor BBLSDM Komdigi Makassar</span>
+                    <span>BBLSDM Komdigi Makassar</span>
                 </span>
                 <span>&bull;</span>
                 <span class="flex items-center gap-1.5 text-amber-400 font-semibold">
@@ -90,416 +98,491 @@
         </div>
 
         {{-- ========================================================= --}}
-        {{-- VIEW & ANIMASI KHUSUS JUARA 1, 2, 3 (PODIUM JUARA)        --}}
+        {{-- BLOK COMING SOON JIKA EDISI BELUM DIPUBLIKASIKAN          --}}
         {{-- ========================================================= --}}
-        <div class="mb-24">
-            {{-- Header Podium dengan Jarak Vertikal Lapang ke Mahkota --}}
-            <div class="text-center mb-16">
-                <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
-                    <i class="bi bi-award-fill"></i> Podium Pemenang Utama (Babak Final)
+        <template x-if="!activeCompetition.is_published && !{{ $allowPreview ? 'true' : 'false' }}">
+            <div class="max-w-3xl mx-auto my-12 p-8 sm:p-14 text-center rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl backdrop-blur-md">
+                <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-500/20 to-blue-500/20 border border-amber-400/30 flex items-center justify-center text-3xl mb-6 shadow-inner">
+                    ⏳
+                </div>
+
+                <span class="inline-block px-3.5 py-1 rounded-full text-xs font-bold text-amber-300 bg-amber-400/10 border border-amber-400/30 uppercase tracking-widest mb-3">
+                    Coming Soon
                 </span>
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
-                    Tiga Terbaik Kecepatan & Akurasi Scratch
+
+                <h2 class="text-2xl sm:text-3xl font-black text-white mb-3">
+                    Edisi <span x-text="selectedYear"></span> Sedang Dipersiapkan
                 </h2>
-                <p class="text-xs text-slate-400 mt-1">
-                    Hasil penentuan juara berdasarkan pengerjaan tantangan pada <strong>Babak Final</strong> (Top 10 Finalis).
+
+                <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl mx-auto mb-8">
+                    Data dan papan peringkat resmi Kompetisi Speed Coding Scratch <span class="font-bold text-amber-400" x-text="'Tahun ' + selectedYear"></span> saat ini belum dipublikasikan. Panitia dan dewan juri BBLSDM Komdigi Makassar sedang mempersiapkan pelaksanaan kompetisi.
                 </p>
-            </div>
 
-            {{-- GRID PODIUM (JUARA 2 - JUARA 1 - JUARA 3) DENGAN PADDING-TOP EKSTRA UNTUK MAHKOTA --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-end max-w-5xl mx-auto pt-14 sm:pt-16">
-
-                {{-- JUARA 2 (PERAK / SILVER) --}}
-                <div class="order-2 md:order-1 relative rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-600/60 shadow-xl shadow-slate-900/50 backdrop-blur-md transform transition-all duration-500 hover:-translate-y-2 group">
-                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-400 to-slate-200 text-slate-900 font-black text-xl flex items-center justify-center shadow-lg border-2 border-white/50">
-                        2
-                    </div>
-
-                    <div class="text-center pt-5">
-                        <span class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-slate-700/80 text-slate-200 border border-slate-500/50 mb-3">
-                            🥈 Juara 2 (Perak)
-                        </span>
-
-                        <div class="relative w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-slate-500 to-slate-300 text-slate-950 font-black text-xl flex items-center justify-center mb-3 shadow-md border border-slate-300/40">
-                            <span x-text="podium.second.avatar"></span>
-                            <span class="absolute -bottom-1 -right-1 text-base" title="Piala Perak">🥈</span>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors"
-                            x-text="podium.second.name"></h3>
-
-                        <p class="text-xs font-medium text-slate-300"
-                           x-text="podium.second.school"></p>
-                        <p class="text-[11px] font-bold text-amber-300 mb-4"
-                           x-text="podium.second.kelas"></p>
-
-                        <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Waktu Final:</span>
-                                <strong class="text-emerald-400 font-mono" x-text="podium.second.time + ' Menit'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Skor Final:</span>
-                                <strong class="text-white font-mono" x-text="podium.second.score + ' / 100'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Waktu Kualifikasi:</span>
-                                <span class="text-slate-300 font-mono text-[11px]" x-text="podium.second.kualifikasi_time + ' Menit'"></span>
-                            </div>
-                            <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
-                                <span class="text-slate-400">Aplikasi:</span>
-                                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-mono" x-text="podium.second.language"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- JUARA 1 (EMAS / GOLD) - DENGAN JARAK MAHKOTA YANG AMAN DARI TEKS --}}
-                <div class="order-1 md:order-2 relative rounded-3xl p-7 sm:p-9 bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-400/80 shadow-2xl shadow-amber-500/20 backdrop-blur-md transform transition-all duration-500 hover:-translate-y-3 group md:-translate-y-4">
-                    {{-- Mahkota Animasi: Diberi margin aman dan posisi proporsional --}}
-                    <div class="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
-                        <span class="text-3xl animate-bounce mb-1">👑</span>
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 text-slate-950 font-black text-2xl flex items-center justify-center shadow-xl shadow-amber-500/50 border-2 border-white pointer-events-auto">
-                            1
-                        </div>
-                    </div>
-
-                    {{-- Halo Efek Emas Berdenyut --}}
-                    <div class="absolute inset-0 rounded-3xl bg-amber-400/5 pointer-events-none animate-pulse"></div>
-
-                    <div class="text-center pt-8">
-                        <span class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-md shadow-amber-500/30 mb-3">
-                            🥇 Juara 1 • Gold Medal
-                        </span>
-
-                        <div class="relative w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-200 text-slate-950 font-black text-2xl flex items-center justify-center mb-3 shadow-lg shadow-amber-400/30 ring-4 ring-amber-400/20">
-                            <span x-text="podium.first.avatar"></span>
-                            <span class="absolute -bottom-1 -right-1 text-base">🏆</span>
-                        </div>
-
-                        <h3 class="text-xl font-extrabold text-white mb-1 group-hover:text-amber-300 transition-colors"
-                            x-text="podium.first.name"></h3>
-
-                        <p class="text-xs font-semibold text-slate-200"
-                           x-text="podium.first.school"></p>
-                        <p class="text-xs font-bold text-amber-300 mb-5"
-                           x-text="podium.first.kelas"></p>
-
-                        <div class="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/30 space-y-2.5 text-xs">
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Rekor Final Tercepat:</span>
-                                <strong class="text-amber-400 font-mono text-sm" x-text="podium.first.time + ' Menit'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Skor Akurasi Final:</span>
-                                <strong class="text-emerald-400 font-mono text-sm" x-text="podium.first.score + ' (Sempurna)'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Waktu Kualifikasi:</span>
-                                <span class="text-slate-300 font-mono text-xs" x-text="podium.first.kualifikasi_time + ' Menit'"></span>
-                            </div>
-                            <div class="flex justify-between items-center pt-1 border-t border-slate-800">
-                                <span class="text-slate-400">Aplikasi:</span>
-                                <span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold" x-text="podium.first.language"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- JUARA 3 (PERUNGGU / BRONZE) --}}
-                <div class="order-3 relative rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-600/60 shadow-xl shadow-slate-900/50 backdrop-blur-md transform transition-all duration-500 hover:-translate-y-2 group">
-                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-700 to-amber-900 text-amber-100 font-black text-xl flex items-center justify-center shadow-lg border-2 border-amber-500/40">
-                        3
-                    </div>
-
-                    <div class="text-center pt-5">
-                        <span class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-900/60 text-amber-300 border border-amber-700/60 mb-3">
-                            🥉 Juara 3 (Perunggu)
-                        </span>
-
-                        <div class="relative w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-800 to-amber-950 text-amber-200 font-black text-xl flex items-center justify-center mb-3 shadow-md border border-amber-700/40">
-                            <span x-text="podium.third.avatar"></span>
-                            <span class="absolute -bottom-1 -right-1 text-base" title="Piala Perunggu">🥉</span>
-                        </div>
-
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors"
-                            x-text="podium.third.name"></h3>
-
-                        <p class="text-xs font-medium text-slate-300"
-                           x-text="podium.third.school"></p>
-                        <p class="text-[11px] font-bold text-amber-300 mb-4"
-                           x-text="podium.third.kelas"></p>
-
-                        <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Waktu Final:</span>
-                                <strong class="text-emerald-400 font-mono" x-text="podium.third.time + ' Menit'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Skor Final:</span>
-                                <strong class="text-white font-mono" x-text="podium.third.score + ' / 100'"></strong>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-400">Waktu Kualifikasi:</span>
-                                <span class="text-slate-300 font-mono text-[11px]" x-text="podium.third.kualifikasi_time + ' Menit'"></span>
-                            </div>
-                            <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
-                                <span class="text-slate-400">Aplikasi:</span>
-                                <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-mono" x-text="podium.third.language"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        {{-- ========================================================= --}}
-        {{-- STATISTIK CEPAT KOMPETISI                                 --}}
-        {{-- ========================================================= --}}
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mb-16">
-            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
-                <span class="block text-2xl lg:text-3xl font-black text-amber-400 mb-1" x-text="activeCompetition.total_participants"></span>
-                <span class="text-xs text-slate-400 font-semibold">Peserta Kualifikasi</span>
-            </div>
-            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
-                <span class="block text-2xl lg:text-3xl font-black text-cyan-400 mb-1" x-text="activeCompetition.finalists_count"></span>
-                <span class="text-xs text-slate-400 font-semibold">Lolos ke Babak Final</span>
-            </div>
-            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
-                <span class="block text-2xl lg:text-3xl font-black text-emerald-400 mb-1" x-text="podium.first.time + 'm'"></span>
-                <span class="text-xs text-slate-400 font-semibold">Rekor Final Tercepat</span>
-            </div>
-            <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
-                <span class="block text-2xl lg:text-3xl font-black text-indigo-400 mb-1">Scratch 3.0</span>
-                <span class="text-xs text-slate-400 font-semibold">Platform Standar</span>
-            </div>
-        </div>
-
-        {{-- ========================================================= --}}
-        {{-- TABEL HASIL (BABAK KUALIFIKASI VS BABAK FINAL)            --}}
-        {{-- ========================================================= --}}
-        <div class="max-w-6xl mx-auto bg-slate-900/80 rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-md">
-            
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                <div>
-                    <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                        <span>Papan Hasil Kompetisi 2 Babak</span>
-                        <span class="text-xs px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 font-bold" x-text="activeCompetition.batch_name"></span>
-                    </h3>
-                    <p class="text-xs sm:text-sm text-slate-400 mt-1">
-                        Dua kali pengerjaan tantangan terpisah: <strong>Babak Kualifikasi</strong> (30 Peserta) dan <strong>Babak Final</strong> (10 Finalis). Kategori SD &amp; SMP bersaing bersama.
-                    </p>
-                </div>
-
-                {{-- Search Box --}}
-                <div class="relative w-full md:w-72">
-                    <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" x-model="search" placeholder="Cari nama peserta / sekolah..."
-                        class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-inner">
-                </div>
-            </div>
-
-            {{-- Filter Tabs (Tahapan: Babak Kualifikasi di Kiri, Babak Final di Tengah, Podium di Kanan) --}}
-            <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800">
-                <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                    <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-bold">Tahapan Lomba:</span>
-                    
-                    {{-- TAB 1: BABAK KUALIFIKASI (30 PESERTA) - PALING KIRI (TAHAP AWAL) --}}
-                    <button type="button" @click="setFilterStage('KUALIFIKASI')"
-                        class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
-                        :class="filterStage === 'KUALIFIKASI' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-500/20 scale-[1.02]' : 'bg-slate-800 text-slate-300 hover:text-white'">
-                        <span>⚡ Babak Kualifikasi (30 Peserta)</span>
+                <div class="inline-flex flex-col sm:flex-row items-center gap-3">
+                    <button type="button" @click.prevent="switchYear('2025')"
+                        class="px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
+                        <i class="bi bi-trophy-fill"></i>
+                        <span>Lihat Hasil Juara Edisi 2025 &rarr;</span>
                     </button>
-
-                    {{-- TAB 2: BABAK FINAL (10 FINALIS) - TENGAH (TAHAP PENENTUAN) --}}
-                    <button type="button" @click="setFilterStage('FINAL')"
-                        class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
-                        :class="filterStage === 'FINAL' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black shadow-md shadow-amber-500/20 scale-[1.02]' : 'bg-slate-800 text-slate-300 hover:text-white'">
-                        <span>🏆 Babak Final (10 Finalis)</span>
-                    </button>
-
-                    {{-- TAB 3: PODIUM JUARA (TOP 3) - KANAN (HASIL MEDALI) --}}
-                    <button type="button" @click="setFilterStage('PODIUM')"
-                        class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
-                        :class="filterStage === 'PODIUM' ? 'bg-amber-600 text-white font-black shadow-md scale-[1.02]' : 'bg-slate-800 text-slate-300 hover:text-white'">
-                        <span>🥇 Podium Juara (1, 2, 3)</span>
-                    </button>
-                </div>
-
-                {{-- Keterangan Jenjang Gabungan --}}
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/60 text-[11px] text-slate-300">
-                    <i class="bi bi-people-fill text-amber-400"></i>
-                    <span>Jenjang SD &amp; SMP Terbuka (Digabung)</span>
+                    @if ($isAdmin)
+                        <a href="{{ route('admin.speed_coding.index') }}?year=2026"
+                           class="px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs sm:text-sm font-semibold border border-slate-700 transition-all flex items-center gap-2">
+                            <i class="bi bi-gear-fill"></i> Panel Admin Edisi 2026
+                        </a>
+                    @endif
                 </div>
             </div>
+        </template>
 
-            {{-- Table dengan Dukungan Responsif Lebar Layar, Anti-Truncate, & Anti-Layout-Shift (Layar 100% Tenang Tanpa Gerak/Lompat) --}}
-            <div id="speed-coding-table-container"
-                 class="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/60 shadow-inner min-h-[440px] flex flex-col justify-start transition-[min-height] duration-150">
-                <div class="overflow-x-auto w-full">
-                    <table class="w-full text-left border-collapse text-xs sm:text-sm min-w-[850px]">
-                        <thead>
-                            <tr class="bg-slate-900 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                                <th class="px-4 py-3.5 text-center w-16 whitespace-nowrap">
-                                    <span x-text="filterStage === 'KUALIFIKASI' ? 'Rank Kual.' : 'Rank Final'"></span>
-                                </th>
-                                <th class="px-4 py-3.5 whitespace-nowrap min-w-[180px]">Nama Peserta</th>
-                                <th class="px-4 py-3.5 whitespace-nowrap min-w-[190px]">Asal Sekolah</th>
-                                <th class="px-4 py-3.5 text-center whitespace-nowrap min-w-[120px]">Kelas &amp; Jenjang</th>
-                                
-                                {{-- Kolom Dinamis Sesuai Tahapan --}}
-                                <template x-if="filterStage !== 'KUALIFIKASI'">
-                                    <th class="px-4 py-3.5 text-center bg-amber-950/20 text-amber-300 whitespace-nowrap min-w-[110px]">Waktu Final</th>
-                                </template>
-                                <template x-if="filterStage !== 'KUALIFIKASI'">
-                                    <th class="px-4 py-3.5 text-center bg-amber-950/20 text-amber-300 whitespace-nowrap min-w-[100px]">Skor Final</th>
-                                </template>
+        {{-- ========================================================= --}}
+        {{-- VIEW DATA LOMBA (PODIUM, HARAPAN & TABEL)                --}}
+        {{-- ========================================================= --}}
+        <template x-if="activeCompetition.is_published || {{ $allowPreview ? 'true' : 'false' }}">
+            <div>
+                {{-- Banner Mode Pratinjau Admin jika unpublished --}}
+                <template x-if="!activeCompetition.is_published && {{ $allowPreview ? 'true' : 'false' }}">
+                    <div class="max-w-4xl mx-auto mb-8 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs text-center flex items-center justify-center gap-2">
+                        <i class="bi bi-eye-fill"></i>
+                        <span><strong>Mode Pratinjau Admin:</strong> Edisi ini berstatus Draf (Coming Soon) bagi publik, namun dapat Anda tinjau karena Anda login sebagai Administrator.</span>
+                    </div>
+                </template>
 
-                                <th class="px-4 py-3.5 text-center whitespace-nowrap min-w-[130px]" :class="filterStage === 'KUALIFIKASI' ? 'bg-blue-950/30 text-cyan-300' : 'text-slate-400'">
-                                    Waktu Kualifikasi
-                                </th>
-                                <th class="px-4 py-3.5 text-center whitespace-nowrap min-w-[120px]" :class="filterStage === 'KUALIFIKASI' ? 'bg-blue-950/30 text-cyan-300' : 'text-slate-400'">
-                                    Skor Kualifikasi
-                                </th>
+                {{-- PODIUM JUARA 1, 2, 3 --}}
+                <template x-if="podium && podium.first">
+                    <div class="mb-20">
+                        {{-- Header Podium --}}
+                        <div class="text-center mb-16">
+                            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400/10 border border-amber-400/30 text-amber-300 text-xs font-bold uppercase tracking-wider mb-2">
+                                <i class="bi bi-award-fill"></i> Podium Pemenang Utama (Babak Final)
+                            </span>
+                            <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+                                Tiga Terbaik Kecepatan & Akurasi Scratch
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-1">
+                                Hasil penentuan juara berdasarkan pengerjaan tantangan pada <strong>Babak Final</strong> (Top 10 Finalis).
+                            </p>
+                        </div>
 
-                                <th class="px-5 py-3.5 text-center whitespace-nowrap min-w-[180px]">Status</th>
-                            </tr>
-                        </thead>
+                        {{-- GRID PODIUM (JUARA 2 - JUARA 1 - JUARA 3) --}}
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-end max-w-5xl mx-auto pt-14 sm:pt-16">
 
-                        <tbody class="divide-y divide-slate-800/80">
-                            <template x-for="(p, index) in filteredParticipants" :key="selectedYear + '-' + (p.final_rank || p.kualifikasi_rank) + '-' + index">
-                                <tr class="hover:bg-slate-800/50 transition-colors"
-                                    :class="{
-                                        'bg-amber-500/10 font-semibold': p.final_rank === 1 && filterStage !== 'KUALIFIKASI',
-                                        'bg-slate-700/20': p.final_rank === 2 && filterStage !== 'KUALIFIKASI',
-                                        'bg-amber-900/15': p.final_rank === 3 && filterStage !== 'KUALIFIKASI',
-                                        'bg-blue-950/20': p.is_finalist && filterStage === 'KUALIFIKASI'
-                                    }">
-                                    
-                                    {{-- Rank Column --}}
-                                    <td class="px-4 py-3.5 text-center font-bold whitespace-nowrap">
-                                        <template x-if="filterStage !== 'KUALIFIKASI'">
-                                            <div>
-                                                <template x-if="p.final_rank === 1">
-                                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/30">🥇</span>
-                                                </template>
-                                                <template x-if="p.final_rank === 2">
-                                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-300 text-slate-950 font-black shadow-md">🥈</span>
-                                                </template>
-                                                <template x-if="p.final_rank === 3">
-                                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700 text-white font-black shadow-md">🥉</span>
-                                                </template>
-                                                <template x-if="p.final_rank > 3">
-                                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-900/60 text-cyan-300 font-bold border border-blue-500/30" x-text="p.final_rank"></span>
-                                                </template>
-                                            </div>
-                                        </template>
+                            {{-- JUARA 2 (PERAK / SILVER) --}}
+                            <div class="order-2 md:order-1 relative rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-600/60 shadow-xl shadow-slate-900/50 backdrop-blur-md transform transition-all duration-300 hover:-translate-y-2 group">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl bg-gradient-to-tr from-slate-400 to-slate-200 text-slate-900 font-black text-xl flex items-center justify-center shadow-lg border-2 border-white/50">
+                                    2
+                                </div>
 
-                                        <template x-if="filterStage === 'KUALIFIKASI'">
-                                            <div>
-                                                <span class="font-mono text-xs font-bold"
-                                                      :class="p.kualifikasi_rank <= 10 ? 'text-amber-400 font-extrabold' : 'text-slate-500'"
-                                                      x-text="'#' + p.kualifikasi_rank"></span>
-                                            </div>
-                                        </template>
-                                    </td>
+                                <div class="text-center pt-5">
+                                    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-slate-700/80 text-slate-200 border border-slate-500/50 mb-3">
+                                        🥈 Juara 2 (Perak)
+                                    </span>
 
-                                    {{-- Name --}}
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
-                                        <span class="font-bold text-white block" x-text="p.name"></span>
-                                    </td>
+                                    <div class="relative w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-slate-500 to-slate-300 text-slate-950 font-black text-xl flex items-center justify-center mb-3 shadow-md border border-slate-300/40">
+                                        <span x-text="podium.second.avatar"></span>
+                                        <span class="absolute -bottom-1 -right-1 text-base" title="Piala Perak">🥈</span>
+                                    </div>
 
-                                    {{-- School --}}
-                                    <td class="px-4 py-3.5 whitespace-nowrap">
-                                        <span class="text-slate-300" x-text="p.school"></span>
-                                    </td>
+                                    <h3 class="text-lg font-bold text-white mb-1 group-hover:text-cyan-300 transition-colors"
+                                        x-text="podium.second.name"></h3>
 
-                                    {{-- Kelas & Jenjang --}}
-                                    <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                        <div class="inline-flex items-center gap-1.5">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                                                  :class="p.jenjang === 'SD' ? 'bg-emerald-900/80 text-emerald-200 border border-emerald-700/50' : 'bg-cyan-900/80 text-cyan-200 border border-cyan-700/50'"
-                                                  x-text="p.jenjang"></span>
-                                            <span class="text-slate-400 text-[11px]" x-text="p.kelas"></span>
+                                    <p class="text-xs font-medium text-slate-300 mb-4"
+                                       x-text="podium.second.school"></p>
+
+                                    <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Final:</span>
+                                            <strong class="text-emerald-400 font-mono" x-text="podium.second.time"></strong>
                                         </div>
-                                    </td>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Skor Final:</span>
+                                            <strong class="text-white font-mono" x-text="podium.second.score"></strong>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Kualifikasi:</span>
+                                            <span class="text-slate-300 font-mono text-[11px]" x-text="podium.second.kualifikasi_time"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
+                                            <span class="text-slate-400">Aplikasi:</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-mono" x-text="podium.second.language"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                    {{-- Waktu & Skor Final (Jika Tahap Final / Podium) --}}
-                                    <template x-if="filterStage !== 'KUALIFIKASI'">
-                                        <td class="px-4 py-3.5 text-center bg-amber-950/10 whitespace-nowrap">
-                                            <span class="font-mono text-emerald-400 font-bold" x-text="p.final_time ? p.final_time + ' Menit' : '-'"></span>
-                                        </td>
-                                    </template>
-                                    <template x-if="filterStage !== 'KUALIFIKASI'">
-                                        <td class="px-4 py-3.5 text-center bg-amber-950/10 whitespace-nowrap">
-                                            <span class="font-extrabold text-amber-300 font-mono" x-text="p.final_score ? Number(p.final_score).toFixed(1) : '-'"></span>
-                                        </td>
-                                    </template>
+                            {{-- JUARA 1 (EMAS / GOLD) --}}
+                            <div class="order-1 md:order-2 relative rounded-3xl p-7 sm:p-9 bg-gradient-to-b from-amber-950/40 via-slate-900 to-slate-900 border-2 border-amber-400/80 shadow-2xl shadow-amber-500/20 backdrop-blur-md transform transition-all duration-300 hover:-translate-y-3 group md:-translate-y-4">
+                                <div class="absolute -top-14 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
+                                    <span class="text-3xl animate-bounce mb-1">👑</span>
+                                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 via-yellow-300 to-amber-600 text-slate-950 font-black text-2xl flex items-center justify-center shadow-xl shadow-amber-500/50 border-2 border-white pointer-events-auto">
+                                        1
+                                    </div>
+                                </div>
 
-                                    {{-- Waktu & Skor Kualifikasi --}}
-                                    <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                        <span class="font-mono text-slate-300" x-text="p.kualifikasi_time + ' Menit'"></span>
-                                    </td>
-                                    <td class="px-4 py-3.5 text-center whitespace-nowrap">
-                                        <span class="font-mono font-semibold"
-                                              :class="filterStage === 'KUALIFIKASI' ? 'text-white font-bold' : 'text-slate-400'"
-                                              x-text="Number(p.kualifikasi_score).toFixed(1)"></span>
-                                    </td>
+                                <div class="absolute inset-0 rounded-3xl bg-amber-400/5 pointer-events-none animate-pulse"></div>
 
-                                    {{-- Status Kolom yang Tidak Terpotong (whitespace-nowrap) --}}
-                                    <td class="px-5 py-3.5 text-center whitespace-nowrap">
-                                        <template x-if="filterStage !== 'KUALIFIKASI'">
-                                            <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap shadow-sm"
-                                                  :class="{
-                                                    'bg-amber-400 text-slate-950 font-black shadow-amber-400/20': p.final_rank === 1,
-                                                    'bg-slate-300 text-slate-950 font-bold': p.final_rank === 2,
-                                                    'bg-amber-700 text-white font-bold': p.final_rank === 3,
-                                                    'bg-blue-900/60 text-cyan-300 border border-blue-500/40': p.final_rank > 3
-                                                  }"
-                                                  x-text="p.status"></span>
-                                        </template>
+                                <div class="text-center pt-8">
+                                    <span class="inline-block px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-md shadow-amber-500/30 mb-3">
+                                        🥇 Juara 1 • Gold Medal
+                                    </span>
 
-                                        <template x-if="filterStage === 'KUALIFIKASI'">
-                                            <div>
-                                                <template x-if="p.is_finalist">
-                                                    <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-extrabold bg-emerald-950 text-emerald-300 border border-emerald-600/50 whitespace-nowrap shadow-sm">
-                                                        ✓ Lolos ke Final (Top 10)
-                                                    </span>
-                                                </template>
-                                                <template x-if="!p.is_finalist">
-                                                    <span class="inline-block px-3 py-1.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-400 whitespace-nowrap">
-                                                        Peserta Kualifikasi
-                                                    </span>
-                                                </template>
-                                            </div>
-                                        </template>
-                                    </td>
-                                </tr>
+                                    <div class="relative w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-amber-400 to-yellow-200 text-slate-950 font-black text-2xl flex items-center justify-center mb-3 shadow-lg shadow-amber-400/30 ring-4 ring-amber-400/20">
+                                        <span x-text="podium.first.avatar"></span>
+                                        <span class="absolute -bottom-1 -right-1 text-base">🏆</span>
+                                    </div>
+
+                                    <h3 class="text-xl font-extrabold text-white mb-1 group-hover:text-amber-300 transition-colors"
+                                        x-text="podium.first.name"></h3>
+
+                                    <p class="text-xs font-semibold text-slate-200 mb-5"
+                                       x-text="podium.first.school"></p>
+
+                                    <div class="p-4 rounded-2xl bg-slate-950/80 border border-amber-500/30 space-y-2.5 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Final Tercepat:</span>
+                                            <strong class="text-amber-400 font-mono text-sm" x-text="podium.first.time"></strong>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Skor Final:</span>
+                                            <strong class="text-emerald-400 font-mono text-sm" x-text="podium.first.score + ' Poin'"></strong>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Kualifikasi:</span>
+                                            <span class="text-slate-300 font-mono text-xs" x-text="podium.first.kualifikasi_time"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-1 border-t border-slate-800">
+                                            <span class="text-slate-400">Aplikasi:</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold" x-text="podium.first.language"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- JUARA 3 (PERUNGGU / BRONZE) --}}
+                            <div class="order-3 relative rounded-3xl p-6 sm:p-7 bg-gradient-to-b from-slate-800/90 to-slate-900/90 border border-slate-600/60 shadow-xl shadow-slate-900/50 backdrop-blur-md transform transition-all duration-300 hover:-translate-y-2 group">
+                                <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-700 to-amber-900 text-amber-100 font-black text-xl flex items-center justify-center shadow-lg border-2 border-amber-500/40">
+                                    3
+                                </div>
+
+                                <div class="text-center pt-5">
+                                    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-900/60 text-amber-300 border border-amber-700/60 mb-3">
+                                        🥉 Juara 3 (Perunggu)
+                                    </span>
+
+                                    <div class="relative w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-amber-800 to-amber-950 text-amber-200 font-black text-xl flex items-center justify-center mb-3 shadow-md border border-amber-700/40">
+                                        <span x-text="podium.third.avatar"></span>
+                                        <span class="absolute -bottom-1 -right-1 text-base" title="Piala Perunggu">🥉</span>
+                                    </div>
+
+                                    <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors"
+                                        x-text="podium.third.name"></h3>
+
+                                    <p class="text-xs font-medium text-slate-300 mb-4"
+                                       x-text="podium.third.school"></p>
+
+                                    <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800 space-y-2 text-xs">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Final:</span>
+                                            <strong class="text-emerald-400 font-mono" x-text="podium.third.time"></strong>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Skor Final:</span>
+                                            <strong class="text-white font-mono" x-text="podium.third.score"></strong>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-400">Waktu Kualifikasi:</span>
+                                            <span class="text-slate-300 font-mono text-[11px]" x-text="podium.third.kualifikasi_time"></span>
+                                        </div>
+                                        <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
+                                            <span class="text-slate-400">Aplikasi:</span>
+                                            <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[10px] font-mono" x-text="podium.third.language"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </template>
+
+                {{-- ========================================================= --}}
+                {{-- JUARA HARAPAN 1, 2, 3 (KHUSUS UNTUK EDISI 2025)           --}}
+                {{-- ========================================================= --}}
+                <template x-if="activeCompetition.has_harapan">
+                    <div class="max-w-5xl mx-auto mb-20">
+                        <div class="text-center mb-6">
+                            <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-slate-800/90 text-amber-300 border border-slate-700 text-xs font-bold uppercase tracking-wider">
+                                <i class="bi bi-award"></i> Juara Harapan (Babak Final Edisi 2025)
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <template x-for="h in activeCompetition.harapan" :key="h.final_rank">
+                                <div class="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 text-center hover:border-slate-700 transition-all shadow-lg">
+                                    <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase bg-slate-800 text-amber-300 border border-slate-700 mb-3" x-text="h.badge"></span>
+                                    
+                                    <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-800 text-amber-300 font-black text-lg flex items-center justify-center mb-3 shadow-inner"
+                                         x-text="h.avatar"></div>
+                                    
+                                    <h4 class="font-extrabold text-white text-base mb-1" x-text="h.name"></h4>
+                                    <p class="text-xs text-slate-400 mb-4" x-text="h.school"></p>
+
+                                    <div class="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-around text-xs">
+                                        <div>
+                                            <span class="text-slate-500 block text-[10px] uppercase font-semibold">Waktu Final</span>
+                                            <strong class="text-emerald-400 font-mono text-sm" x-text="h.time"></strong>
+                                        </div>
+                                        <div class="h-7 w-px bg-slate-800"></div>
+                                        <div>
+                                            <span class="text-slate-500 block text-[10px] uppercase font-semibold">Skor Final</span>
+                                            <strong class="text-white font-mono text-sm" x-text="h.score"></strong>
+                                        </div>
+                                    </div>
+                                </div>
                             </template>
+                        </div>
+                    </div>
+                </template>
 
-                            <tr x-show="filteredParticipants.length === 0">
-                                <td colspan="9" class="px-5 py-12 text-center text-slate-500 text-xs">
-                                    Tidak ada data peserta yang cocok dengan kriteria pencarian Anda.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                {{-- ========================================================= --}}
+                {{-- STATISTIK CEPAT KOMPETISI                                 --}}
+                {{-- ========================================================= --}}
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto mb-16">
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+                        <span class="block text-2xl lg:text-3xl font-black text-amber-400 mb-1" x-text="activeCompetition.total_participants"></span>
+                        <span class="text-xs text-slate-400 font-semibold">Peserta Kualifikasi</span>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+                        <span class="block text-2xl lg:text-3xl font-black text-cyan-400 mb-1" x-text="activeCompetition.finalists_count"></span>
+                        <span class="text-xs text-slate-400 font-semibold">Lolos ke Babak Final</span>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+                        <span class="block text-2xl lg:text-3xl font-black text-emerald-400 mb-1" x-text="podium && podium.first ? podium.first.time : '-'"></span>
+                        <span class="text-xs text-slate-400 font-semibold">Rekor Final Tercepat</span>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 text-center">
+                        <span class="block text-2xl lg:text-3xl font-black text-indigo-400 mb-1">Scratch 3.0</span>
+                        <span class="text-xs text-slate-400 font-semibold">Platform Standar</span>
+                    </div>
+                </div>
+
+                {{-- ========================================================= --}}
+                {{-- TABEL HASIL (BABAK KUALIFIKASI VS BABAK FINAL)            --}}
+                {{-- ========================================================= --}}
+                <div class="max-w-6xl mx-auto bg-slate-900/80 rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+                    
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+                                <span>Papan Hasil Kompetisi 2 Babak</span>
+                                <span class="text-xs px-2.5 py-1 rounded-full bg-amber-400/20 text-amber-300 font-bold" x-text="activeCompetition.batch_name"></span>
+                            </h3>
+                            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                                Dua kali pengerjaan tantangan terpisah: <strong>Babak Kualifikasi</strong> (<span x-text="activeCompetition.total_participants"></span> Peserta) dan <strong>Babak Final</strong> (<span x-text="activeCompetition.finalists_count"></span> Finalis). Kategori SD &amp; SMP bersaing bersama.
+                            </p>
+                        </div>
+
+                        {{-- Search Box dengan Tombol Cari & Tombol Reset (Bebas Jump / Anti-Scroll Movement) --}}
+                        <div class="flex items-center gap-2 w-full md:w-80">
+                            <div class="relative flex-1">
+                                <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+                                <input type="text"
+                                    x-ref="searchInput"
+                                    x-model.debounce.150ms="search"
+                                    @focus="maintainTableHeight()"
+                                    @input="maintainTableHeight()"
+                                    @keydown.enter.prevent="maintainTableHeight()"
+                                    placeholder="Cari nama peserta / sekolah..."
+                                    class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 shadow-inner">
+                                <button type="button"
+                                    x-show="search && search.length > 0"
+                                    @click.prevent="search = ''; maintainTableHeight()"
+                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs transition-colors p-1"
+                                    title="Hapus pencarian">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                            </div>
+                            <button type="button"
+                                @click.prevent="maintainTableHeight()"
+                                class="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-md transition-colors flex items-center gap-1.5 flex-shrink-0"
+                                title="Terapkan pencarian">
+                                <i class="bi bi-search"></i>
+                                <span>Cari</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Filter Tabs (Babak Kualifikasi di Kiri, Babak Final di Tengah, Podium di Kanan) --}}
+                    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-800">
+                        <div class="flex flex-wrap items-center gap-2 text-xs font-semibold">
+                            <span class="text-slate-400 mr-1 text-[11px] uppercase tracking-wider font-bold">Tahapan Lomba:</span>
+                            
+                            {{-- TAB 1: BABAK KUALIFIKASI --}}
+                            <button type="button" @click.prevent="setFilterStage('KUALIFIKASI')"
+                                class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                                :class="filterStage === 'KUALIFIKASI' ? 'bg-blue-600 text-white font-black shadow-md shadow-blue-500/20' : 'bg-slate-800 text-slate-300 hover:text-white'">
+                                <span>⚡ Babak Kualifikasi (<span x-text="activeCompetition.total_participants"></span> Peserta)</span>
+                            </button>
+
+                            {{-- TAB 2: BABAK FINAL --}}
+                            <button type="button" @click.prevent="setFilterStage('FINAL')"
+                                class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                                :class="filterStage === 'FINAL' ? 'bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black shadow-md shadow-amber-500/20' : 'bg-slate-800 text-slate-300 hover:text-white'">
+                                <span>🏆 Babak Final (<span x-text="activeCompetition.finalists_count"></span> Finalis)</span>
+                            </button>
+
+                            {{-- TAB 3: PODIUM JUARA --}}
+                            <button type="button" @click.prevent="setFilterStage('PODIUM')"
+                                class="px-3.5 py-2 rounded-xl transition-all flex items-center gap-1.5"
+                                :class="filterStage === 'PODIUM' ? 'bg-amber-600 text-white font-black shadow-md' : 'bg-slate-800 text-slate-300 hover:text-white'">
+                                <span>🥇 Podium Juara (1, 2, 3)</span>
+                            </button>
+                        </div>
+
+                        {{-- Keterangan Jenjang Gabungan --}}
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/60 text-[11px] text-slate-300">
+                            <i class="bi bi-people-fill text-amber-400"></i>
+                            <span>Jenjang SD &amp; SMP Terbuka (Digabung)</span>
+                        </div>
+                    </div>
+
+                    {{-- Table dengan container stabil (anti-jump, min-height terjaga) --}}
+                    <div id="speed-coding-table-container"
+                         class="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/60 shadow-inner min-h-[500px] flex flex-col justify-start">
+                        <div class="w-full overflow-hidden">
+                            <table class="w-full text-left border-collapse text-xs sm:text-sm table-auto">
+                                <thead>
+                                    <tr class="bg-slate-900 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                        <th class="px-3 py-3.5 text-center w-14 whitespace-nowrap">
+                                            <span>Rank</span>
+                                        </th>
+                                        <th class="px-3.5 py-3.5 text-left">Nama Peserta</th>
+                                        <th class="px-3.5 py-3.5 text-left">Asal Sekolah</th>
+                                        <th class="px-3 py-3.5 text-center w-20 whitespace-nowrap">Jenjang</th>
+                                        
+                                        {{-- Kolom Waktu & Skor Seragam untuk Semua Tahapan --}}
+                                        <th class="px-3.5 py-3.5 text-center w-24 whitespace-nowrap"
+                                            :class="filterStage === 'KUALIFIKASI' ? 'text-cyan-300' : 'text-amber-300'">
+                                            Waktu
+                                        </th>
+                                        <th class="px-3.5 py-3.5 text-center w-20 whitespace-nowrap"
+                                            :class="filterStage === 'KUALIFIKASI' ? 'text-cyan-300' : 'text-amber-300'">
+                                            Skor
+                                        </th>
+
+                                        <th class="px-3.5 py-3.5 text-center w-36 whitespace-nowrap">Status</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-slate-800/80">
+                                    <template x-for="p in filteredParticipants" :key="'p-' + (p.id || p.name)">
+                                        <tr class="hover:bg-slate-800/50 transition-colors"
+                                            :class="{
+                                                'bg-amber-500/10 font-semibold': p.final_rank === 1 && filterStage !== 'KUALIFIKASI',
+                                                'bg-slate-700/20': p.final_rank === 2 && filterStage !== 'KUALIFIKASI',
+                                                'bg-amber-900/15': p.final_rank === 3 && filterStage !== 'KUALIFIKASI',
+                                                'bg-blue-950/20': p.is_finalist && filterStage === 'KUALIFIKASI'
+                                            }">
+                                            
+                                            {{-- Rank Column --}}
+                                            <td class="px-4 py-3.5 text-center font-bold whitespace-nowrap">
+                                                <template x-if="filterStage !== 'KUALIFIKASI'">
+                                                    <div>
+                                                        <template x-if="p.final_rank === 1">
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-400/30">🥇</span>
+                                                        </template>
+                                                        <template x-if="p.final_rank === 2">
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-slate-300 text-slate-950 font-black shadow-md">🥈</span>
+                                                        </template>
+                                                        <template x-if="p.final_rank === 3">
+                                                            <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-amber-700 text-white font-black shadow-md">🥉</span>
+                                                        </template>
+                                                        <template x-if="p.final_rank > 3">
+                                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-blue-900/60 text-cyan-300 font-bold border border-blue-500/30" x-text="p.final_rank"></span>
+                                                        </template>
+                                                    </div>
+                                                </template>
+
+                                                <template x-if="filterStage === 'KUALIFIKASI'">
+                                                    <div>
+                                                        <span class="font-mono text-xs font-bold"
+                                                              :class="p.kualifikasi_rank <= 10 ? 'text-amber-400 font-extrabold' : 'text-slate-500'"
+                                                              x-text="'#' + p.kualifikasi_rank"></span>
+                                                    </div>
+                                                </template>
+                                            </td>
+
+                                            {{-- Nama Peserta (Maksimal 30 karakter, ellipsis, tooltip saat hover) --}}
+                                            <td class="px-3.5 py-3.5 text-left">
+                                                <span class="font-bold text-white block truncate max-w-[150px] sm:max-w-[200px] md:max-w-[240px] cursor-help"
+                                                      :title="p.name"
+                                                      x-text="formatTruncate(p.name, 30)"></span>
+                                            </td>
+
+                                            {{-- Asal Sekolah (Maksimal 30 karakter, ellipsis, tooltip saat hover) --}}
+                                            <td class="px-3.5 py-3.5 text-left">
+                                                <span class="text-slate-300 block truncate max-w-[150px] sm:max-w-[200px] md:max-w-[240px] cursor-help"
+                                                      :title="p.school"
+                                                      x-text="formatTruncate(p.school, 30)"></span>
+                                            </td>
+
+                                            {{-- Jenjang --}}
+                                            <td class="px-3 py-3.5 text-center whitespace-nowrap">
+                                                <span class="px-2.5 py-0.5 rounded-md text-[10px] font-bold"
+                                                      :class="p.jenjang === 'SD' ? 'bg-emerald-950 text-emerald-300 border border-emerald-700/60' : 'bg-cyan-950 text-cyan-300 border border-cyan-700/60'"
+                                                      x-text="p.jenjang || 'SMP'"></span>
+                                            </td>
+
+                                            {{-- Waktu (Seragam: Kualifikasi di tab Kualifikasi, Final di tab Final/Podium) --}}
+                                            <td class="px-3.5 py-3.5 text-center font-mono font-bold whitespace-nowrap"
+                                                :class="filterStage === 'KUALIFIKASI' ? 'text-cyan-300' : 'text-amber-300'"
+                                                x-text="filterStage === 'KUALIFIKASI' ? (p.kualifikasi_time || '-') : (p.final_time || '-')">
+                                            </td>
+
+                                            {{-- Skor (Seragam: Kualifikasi di tab Kualifikasi, Final di tab Final/Podium) --}}
+                                            <td class="px-3.5 py-3.5 text-center font-extrabold text-white whitespace-nowrap"
+                                                x-text="filterStage === 'KUALIFIKASI' ? (p.kualifikasi_score !== null ? Number(p.kualifikasi_score).toFixed(1) : '-') : (p.final_score !== null ? Number(p.final_score).toFixed(1) : '-')">
+                                            </td>
+
+                                            {{-- Status / Keterangan --}}
+                                            <td class="px-3.5 py-3.5 text-center whitespace-nowrap">
+                                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold inline-block"
+                                                      :class="{
+                                                        'bg-amber-400 text-slate-950 font-black shadow-xs': p.final_rank === 1 && filterStage !== 'KUALIFIKASI',
+                                                        'bg-slate-300 text-slate-950 font-bold': p.final_rank === 2 && filterStage !== 'KUALIFIKASI',
+                                                        'bg-amber-700 text-white font-bold': p.final_rank === 3 && filterStage !== 'KUALIFIKASI',
+                                                        'bg-amber-950/80 text-amber-300 border border-amber-600/50': (p.final_rank === 4 || p.final_rank === 5 || p.final_rank === 6) && filterStage !== 'KUALIFIKASI',
+                                                        'bg-blue-900/60 text-cyan-300 border border-blue-500/40': (p.is_finalist && filterStage === 'KUALIFIKASI') || (p.final_rank > 6 && filterStage !== 'KUALIFIKASI'),
+                                                        'bg-slate-800 text-slate-400': !p.is_finalist
+                                                      }"
+                                                      x-text="filterStage === 'KUALIFIKASI' ? (p.is_finalist ? 'Lolos ke Final 🎖️' : 'Peserta') : (p.status || (p.is_finalist ? 'Finalis Top 10' : 'Peserta'))"></span>
+                                            </td>
+                                        </tr>
+                                    </template>
+
+                                    <tr x-show="filteredParticipants.length === 0">
+                                        <td colspan="7" class="px-5 py-12 text-center text-slate-500 text-xs">
+                                            Tidak ada data peserta yang cocok dengan kriteria pencarian Anda.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Footer Note --}}
+                    <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-3 border-t border-slate-800 pt-4">
+                        <span class="flex items-center gap-1.5">
+                            <i class="bi bi-shield-check text-blue-400"></i>
+                            Sertifikat resmi e-verifikasi kompetisi dapat diunduh oleh seluruh peserta melalui portal resmi BBLSDM Komdigi Makassar.
+                        </span>
+                        <a href="{{ route('landing') }}" class="font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1">
+                            &larr; Kembali ke Beranda HANDAL
+                        </a>
+                    </div>
+
                 </div>
             </div>
-
-            {{-- Footer Note --}}
-            <div class="mt-6 flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-400 gap-3 border-t border-slate-800 pt-4">
-                <span class="flex items-center gap-1.5">
-                    <i class="bi bi-shield-check text-blue-400"></i>
-                    Sertifikat resmi e-verifikasi kompetisi dapat diunduh oleh 30 peserta melalui portal resmi BBLSDM Komdigi Makassar.
-                </span>
-                <a href="{{ route('landing') }}" class="font-bold text-amber-400 hover:text-amber-300 hover:underline flex items-center gap-1">
-                    &larr; Kembali ke Beranda HANDAL
-                </a>
-            </div>
-
-        </div>
+        </template>
 
     </div>
 </div>
@@ -507,31 +590,65 @@
 {{-- SCRIPT ALPINE.JS --}}
 <script>
     window.initSpeedCoding = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialYear = urlParams.get('year') || '2025';
+
         return {
-            selectedYear: '2026', // Batch 2 (Terbaru) aktif secara default di sebelah kanan
+            selectedYear: initialYear, // Default 2025 (Tahun Lalu / Kiri)
             competitions: @json($competitions),
             search: '',
-            filterStage: 'KUALIFIKASI', // Babak Kualifikasi (tahap 1) aktif secara default di sebelah kiri
+            filterStage: 'KUALIFIKASI', // Babak Kualifikasi aktif secara default di sebelah kiri
 
-            // Ganti tahapan lomba tanpa menggeser / melompatkan posisi scroll layar sedikitpun
-            setFilterStage(stage) {
+            initTable() {
+                this.$nextTick(() => {
+                    this.maintainTableHeight();
+                });
+                setTimeout(() => {
+                    this.maintainTableHeight();
+                }, 250);
+            },
+
+            // Kunci tinggi minimum container tabel agar tidak pernah menciut dan memicu loncatan scroll dokumen
+            maintainTableHeight() {
                 const container = document.getElementById('speed-coding-table-container');
-                if (container && container.offsetHeight > 350) {
+                if (container) {
                     const currentH = container.offsetHeight;
-                    const existingMinH = parseInt(container.style.minHeight || 0);
-                    if (currentH > existingMinH) {
-                        container.style.minHeight = currentH + 'px';
+                    if (currentH > 350) {
+                        const existingMinH = parseInt(container.style.minHeight || 0);
+                        if (currentH > existingMinH) {
+                            container.style.minHeight = currentH + 'px';
+                        }
                     }
                 }
-                const currentScroll = window.scrollY;
+            },
+
+            // Ganti tahapan lomba tanpa jump/lompat scroll layar
+            setFilterStage(stage) {
+                this.maintainTableHeight();
                 this.filterStage = stage;
+            },
+
+            // Format pemotongan teks maksimal 30 karakter dengan tanda titik-titik (...)
+            formatTruncate(text, max = 30) {
+                if (!text) return '-';
+                return text.length > max ? text.slice(0, max) + '...' : text;
+            },
+
+            // Ganti tahun batch dengan reset minHeight
+            switchYear(year) {
+                const container = document.getElementById('speed-coding-table-container');
+                if (container) {
+                    container.style.minHeight = '';
+                }
+                this.selectedYear = year;
+                this.search = '';
                 this.$nextTick(() => {
-                    window.scrollTo({ top: currentScroll, behavior: 'instant' });
+                    this.maintainTableHeight();
                 });
             },
 
             get activeCompetition() {
-                return this.competitions[this.selectedYear] || this.competitions['2026'];
+                return this.competitions[this.selectedYear] || this.competitions['2025'] || {};
             },
 
             get podium() {
@@ -550,12 +667,12 @@
                     list = list.filter(function(p) { return p.final_rank && p.final_rank <= 3; })
                                .sort(function(a, b) { return a.final_rank - b.final_rank; });
                 } else if (this.filterStage === 'KUALIFIKASI') {
-                    // Semua 30 peserta diurutkan berdasarkan peringkat kualifikasi
+                    // Seluruh peserta diurutkan berdasarkan peringkat kualifikasi
                     list = [...list].sort(function(a, b) { return a.kualifikasi_rank - b.kualifikasi_rank; });
                 }
 
-                if (this.search.trim() !== '') {
-                    const q = this.search.toLowerCase();
+                if (this.search && this.search.trim() !== '') {
+                    const q = this.search.toLowerCase().trim();
                     list = list.filter(function(p) {
                         return (p.name || '').toLowerCase().includes(q) ||
                                (p.school || '').toLowerCase().includes(q) ||

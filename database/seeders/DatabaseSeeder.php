@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             SurveySeeder::class,
             StudentSurveyQuestionSeeder::class,
+            SpeedCodingParticipantSeeder::class,
         ]);
     }
 }

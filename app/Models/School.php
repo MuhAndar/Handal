@@ -68,18 +68,21 @@ class School extends Model
         $this->student_survey_score = $avgStudentScore ? round($avgStudentScore, 2) : 0;
         $this->student_respondents_count = $respondentsCount;
 
-        // Ambil skor asesmen mandiri terbaru dari survey sekolah (jika ada)
-        $latestSurvey = $this->surveys()->whereIn('status', ['submitted', 'verified'])->latest()->first();
-        if ($latestSurvey) {
-            $this->self_assessment_score = round($latestSurvey->total_score, 2);
+        // Ambil skor asesmen mandiri terbaru HANYA yang telah diverifikasi / disetujui validator
+        $latestVerifiedSurvey = $this->surveys()->where('status', 'verified')->latest()->first();
+        if ($latestVerifiedSurvey) {
+            $this->self_assessment_score = round($latestVerifiedSurvey->total_score, 2);
+        } else {
+            $this->self_assessment_score = 0;
         }
 
         // Formula: 70% Asesmen Mandiri + 30% Survei Siswa
-        if ($this->student_respondents_count > 0) {
+        // Skor komposit resmi HANYA diterbitkan jika asesmen mandiri telah diverifikasi DAN minimal ada 10 responden survei siswa (kuorum validitas)
+        if ($latestVerifiedSurvey && $this->student_respondents_count >= 10) {
             $finalScore = (0.70 * $this->self_assessment_score) + (0.30 * $this->student_survey_score);
         } else {
-            // Jika belum ada siswa yang mengisi, gunakan skor asesmen mandiri sebagai nilai sementara
-            $finalScore = $this->self_assessment_score;
+            // Belum memenuhi kuorum survei siswa (min. 10) atau belum diverifikasi validator
+            $finalScore = 0;
         }
 
         $this->current_score = round($finalScore, 2);

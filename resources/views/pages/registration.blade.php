@@ -273,6 +273,9 @@
                                     </div>
                                 </div>
 
+                                {{-- 
+                                    FITUR UPLOAD SURAT PERMOHONAN DINONAKTIFKAN SEMENTARA 
+                                    (Kolom database dan struktur model tetap dipertahankan agar siap diaktifkan kembali kapan saja)
                                 <div>
                                     <label class="block mb-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
                                         Upload Surat Permohonan <span
@@ -283,7 +286,7 @@
                                     <div class="relative group">
                                         <input id="assessment_letter" name="assessment_letter" type="file"
                                             accept=".pdf"
-                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20" required
+                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20"
                                             onchange="updateFileName(this)" />
 
                                         <div id="upload-container"
@@ -305,6 +308,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                --}}
                             </div>
 
                             <div class="pt-8 mt-8 border-t border-slate-100">

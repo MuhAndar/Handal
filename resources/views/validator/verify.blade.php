@@ -20,8 +20,9 @@
             </div>
         </div>
 
-        <form action="{{ route('validator.survey.store', $survey->id) }}" method="POST">
+        <form action="{{ route('validator.survey.store', $survey->id) }}" method="POST" id="verificationForm">
             @csrf
+            <input type="hidden" name="action" id="actionField" value="approve">
 
             <div class="space-y-8">
                 @foreach ($categories as $category)
@@ -40,10 +41,20 @@
                                     $selectedOptionId = $schoolAnswer ? $schoolAnswer->answer_value : null;
                                 @endphp
 
-                                <div class="pb-6 border-b border-slate-100 last:border-0 last:pb-0">
-                                    <h4 class="text-base font-bold text-slate-800 mb-4">
-                                        {{ $loop->iteration }}. {{ $question->question_text }}
-                                    </h4>
+                                <div class="question-block pb-6 border-b border-slate-100 last:border-0 last:pb-0 transition-colors rounded-xl p-3"
+                                    id="verify-q-{{ $question->id }}"
+                                    data-question-id="{{ $question->id }}"
+                                    data-question-text="{{ $question->question_text }}"
+                                    data-original-choice="{{ $selectedOptionId }}">
+                                    <div class="flex items-start justify-between gap-3 mb-4">
+                                        <h4 class="text-base font-bold text-slate-800 flex-1">
+                                            {{ $loop->iteration }}. {{ $question->question_text }}
+                                        </h4>
+                                        <span id="badge-changed-{{ $question->id }}"
+                                            class="hidden text-xs font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex-shrink-0 items-center gap-1 shadow-xs">
+                                            <i class="bi bi-pencil-fill text-[10px]"></i> Nilai Diubah
+                                        </span>
+                                    </div>
 
                                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -61,6 +72,7 @@
                                                         <input type="radio"
                                                             name="validation[{{ $question->id }}][answer_id]"
                                                             value="{{ $option->id }}"
+                                                            onchange="checkScoreChange({{ $question->id }})"
                                                             class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                                                             {{ $isChosen ? 'checked' : '' }}>
                                                     </div>
@@ -92,16 +104,17 @@
                                         </div>
 
                                         <div class="lg:col-span-1">
-                                            <div class="bg-yellow-50 p-4 rounded-xl border border-yellow-200 h-full">
+                                            <div id="note-box-{{ $question->id }}" class="bg-amber-50/80 p-4 rounded-xl border border-amber-200/90 h-full flex flex-col shadow-sm transition-all">
                                                 <label
-                                                    class="block text-xs font-bold text-yellow-700 uppercase tracking-wide mb-2">
-                                                    <i class="bi bi-pencil-square mr-1"></i> Catatan Koreksi
+                                                    class="block text-xs font-bold text-amber-900 uppercase tracking-wide mb-2 flex items-center justify-between">
+                                                    <span class="flex items-center gap-1.5"><i class="bi bi-pencil-square text-amber-700"></i> Catatan Koreksi</span>
+                                                    <span id="note-required-{{ $question->id }}" class="hidden text-[10px] text-rose-600 font-extrabold uppercase">Wajib</span>
                                                 </label>
-                                                <textarea name="validation[{{ $question->id }}][note]" rows="4"
-                                                    class="w-full text-sm rounded-lg border-yellow-300 focus:ring-yellow-500 focus:border-yellow-500 bg-white placeholder-yellow-300/50"
-                                                    placeholder="Berikan alasan jika Anda mengubah nilai...">{{ $schoolAnswer->validator_note ?? '' }}</textarea>
-                                                <p class="text-[10px] text-yellow-600 mt-2 leading-tight">
-                                                    *Jika Anda mengubah opsi di samping, wajib berikan alasan di sini.
+                                                <textarea name="validation[{{ $question->id }}][note]" id="note-input-{{ $question->id }}" rows="4"
+                                                    class="w-full text-xs md:text-sm rounded-lg border-amber-300 focus:ring-amber-500 focus:border-amber-500 bg-white text-slate-800 placeholder-slate-400 shadow-inner transition-all"
+                                                    placeholder="Tuliskan catatan perbaikan atau alasan jika mengubah nilai...">{{ $schoolAnswer->validator_note ?? '' }}</textarea>
+                                                <p id="note-hint-{{ $question->id }}" class="text-[11px] text-amber-800 font-medium mt-2 leading-relaxed">
+                                                    *Jika Anda meminta revisi atau mengubah opsi nilai, tuliskan arahan di sini.
                                                 </p>
                                             </div>
                                         </div>
@@ -122,12 +135,12 @@
                     </div>
 
                     <div class="flex w-full md:w-auto gap-3">
-                        <button type="submit" name="action" value="reject"
-                            class="flex-1 md:flex-none px-6 py-3 bg-white border-2 border-red-100 text-red-600 hover:bg-red-50 hover:border-red-200 font-bold rounded-xl transition-colors">
+                        <button type="button" onclick="confirmVerificationAction('reject')"
+                            class="flex-1 md:flex-none px-6 py-3 bg-white border-2 border-rose-200 text-rose-600 hover:bg-rose-50 hover:border-rose-300 font-bold rounded-xl transition-all shadow-sm">
                             <i class="bi bi-arrow-counterclockwise mr-2"></i> Minta Revisi
                         </button>
 
-                        <button type="submit" name="action" value="approve"
+                        <button type="button" onclick="confirmVerificationAction('approve')"
                             class="flex-1 md:flex-none px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:shadow-xl hover:-translate-y-0.5 transition-all">
                             <i class="bi bi-check-circle-fill mr-2"></i> Simpan & Verifikasi
                         </button>
@@ -137,4 +150,128 @@
 
         </form>
     </div>
+
+    <script>
+        function checkScoreChange(qId) {
+            const block = document.getElementById('verify-q-' + qId);
+            if (!block) return;
+
+            const orig = block.dataset.originalChoice;
+            const checkedRadio = block.querySelector(`input[name="validation[${qId}][answer_id]"]:checked`);
+            const current = checkedRadio ? checkedRadio.value : orig;
+            const isChanged = current != orig;
+
+            const badge = document.getElementById('badge-changed-' + qId);
+            const reqLabel = document.getElementById('note-required-' + qId);
+            const noteBox = document.getElementById('note-box-' + qId);
+            const noteInput = document.getElementById('note-input-' + qId);
+
+            if (isChanged) {
+                if (badge) {
+                    badge.classList.remove('hidden');
+                    badge.classList.add('inline-flex');
+                }
+                if (reqLabel) reqLabel.classList.remove('hidden');
+                if (noteBox) {
+                    noteBox.classList.add('border-amber-400', 'ring-2', 'ring-amber-200');
+                }
+                if (noteInput && !noteInput.value.trim()) {
+                    noteInput.classList.add('border-amber-400', 'bg-amber-50/30');
+                }
+            } else {
+                if (badge) {
+                    badge.classList.add('hidden');
+                    badge.classList.remove('inline-flex');
+                }
+                if (reqLabel) reqLabel.classList.add('hidden');
+                if (noteBox) {
+                    noteBox.classList.remove('border-amber-400', 'ring-2', 'ring-amber-200');
+                }
+                if (noteInput) {
+                    noteInput.classList.remove('border-amber-400', 'bg-amber-50/30');
+                }
+            }
+        }
+
+        async function confirmVerificationAction(action) {
+            const form = document.getElementById('verificationForm');
+            const actionInput = document.getElementById('actionField');
+            actionInput.value = action;
+
+            // Validasi 1: Jika nilai/skor diubah dari pilihan sekolah, validator WAJIB menulis catatan
+            let missingNoteBlock = null;
+            let hasAnyNote = false;
+
+            const questionBlocks = document.querySelectorAll('.question-block');
+            questionBlocks.forEach(block => {
+                const qId = block.dataset.questionId;
+                const orig = block.dataset.originalChoice;
+                const checkedRadio = block.querySelector(`input[name="validation[${qId}][answer_id]"]:checked`);
+                const current = checkedRadio ? checkedRadio.value : orig;
+                const noteInput = document.getElementById('note-input-' + qId);
+                const noteVal = noteInput ? noteInput.value.trim() : '';
+
+                if (noteVal !== '') {
+                    hasAnyNote = true;
+                }
+
+                if (current != orig && noteVal === '') {
+                    if (!missingNoteBlock) {
+                        missingNoteBlock = { block, noteInput };
+                    }
+                }
+            });
+
+            if (missingNoteBlock) {
+                missingNoteBlock.block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                missingNoteBlock.noteInput.classList.add('border-rose-500', 'ring-2', 'ring-rose-300');
+                missingNoteBlock.noteInput.focus();
+
+                await window.handalConfirm({
+                    title: 'Catatan Koreksi Wajib Diisi',
+                    message: 'Anda telah mengubah skor/opsi penilaian pada salah satu soal. Sesuai aturan, Anda wajib memberikan catatan alasan koreksi sebelum melanjutkan.',
+                    confirmText: 'Saya Mengerti',
+                    cancelText: 'Tutup',
+                    type: 'warning'
+                });
+                return;
+            }
+
+            // Validasi 2: Minta revisi hanya dapat dilakukan jika ada minimal 1 catatan revisi
+            if (action === 'reject') {
+                if (!hasAnyNote) {
+                    await window.handalConfirm({
+                        title: 'Belum Ada Catatan Koreksi',
+                        message: 'Untuk meminta revisi, Anda wajib mengisi minimal 1 catatan perbaikan agar pihak sekolah mengetahui indikator mana yang perlu diperbaiki.',
+                        confirmText: 'Lengkapi Catatan',
+                        cancelText: 'Tutup',
+                        type: 'warning'
+                    });
+                    return;
+                }
+
+                const confirmed = await window.handalConfirm({
+                    title: 'Minta Revisi Asesmen?',
+                    message: 'Asesmen ini akan dikembalikan ke pihak sekolah dengan status Perlu Revisi. Catatan perbaikan Anda akan langsung ditampilkan ke pihak sekolah.',
+                    confirmText: 'Ya, Kembalikan untuk Revisi',
+                    cancelText: 'Batal',
+                    type: 'warning'
+                });
+                if (confirmed) {
+                    form.submit();
+                }
+            } else {
+                const confirmed = await window.handalConfirm({
+                    title: 'Simpan & Verifikasi Asesmen?',
+                    message: 'Hasil asesmen mandiri akan disahkan dan skor resmi sekolah akan diterbitkan secara publik di sistem. Lanjutkan?',
+                    confirmText: 'Ya, Terbitkan Verifikasi',
+                    cancelText: 'Periksa Kembali',
+                    type: 'info'
+                });
+                if (confirmed) {
+                    form.submit();
+                }
+            }
+        }
+    </script>
 @endsection

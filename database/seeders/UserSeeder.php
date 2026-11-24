@@ -45,10 +45,10 @@ class UserSeeder extends Seeder
             'npsn' => '40311956',
             'survey_code' => 'sman1mks',
             'is_student_survey_open' => true,
-            'self_assessment_score' => 88.5,
-            'student_survey_score' => 84.0,
-            'student_respondents_count' => 45,
-            'current_score' => round((0.70 * 88.5) + (0.30 * 84.0), 2),
+            'self_assessment_score' => 0,
+            'student_survey_score' => 0,
+            'student_respondents_count' => 0,
+            'current_score' => 0,
         ]);
 
         // Akun Sekolah 2 (SMKN 2 Makassar)

@@ -48,6 +48,26 @@
             </div>
         </div>
 
+        {{-- NOTIFIKASI SUDAH MENGISI / RESTRIKSI DEVICE --}}
+        <div id="alreadySubmittedNotice" class="{{ empty($hasSubmitted) ? 'hidden' : '' }} mb-6 p-5 rounded-3xl bg-amber-50 border border-amber-200 text-amber-900 shadow-sm flex items-start gap-3.5">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-xl flex-shrink-0 shadow-sm shadow-amber-500/20">
+                <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+                <h4 class="font-black text-sm text-amber-950">Anda Sudah Pernah Mengisi Survei Ini</h4>
+                <p class="text-xs text-amber-900/90 mt-1 leading-relaxed">
+                    Perangkat Anda telah tercatat mengirimkan respon survei untuk <strong>{{ $school->name }}</strong>. Untuk menjaga objektivitas dan keabsahan data, setiap perangkat siswa hanya dapat mengirimkan 1 kali tanggapan. Terima kasih banyak atas partisipasi Anda!
+                </p>
+            </div>
+        </div>
+
+        @if (session('error'))
+            <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-center gap-2">
+                <i class="bi bi-exclamation-circle-fill text-rose-500 text-lg"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
+
         {{-- NOTIFIKASI ERROR / VALIDASI --}}
         @if ($errors->any())
             <div class="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
@@ -62,9 +82,21 @@
             </div>
         @endif
 
+        {{-- NOTIFIKASI DRAFT TERPULIHKAN OTOMATIS --}}
+        <div id="draftRestoredNotice" class="hidden mb-6 p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-semibold">
+                <i class="bi bi-clock-history text-blue-600 text-lg flex-shrink-0"></i>
+                <span>Jawaban sebelumnya berhasil dipulihkan otomatis dari perangkat Anda.</span>
+            </div>
+            <button type="button" onclick="document.getElementById('draftRestoredNotice').remove()" class="text-blue-500 hover:text-blue-700 text-xs font-bold px-2 py-1">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
         {{-- FORMULIR SURVEI --}}
-        <form action="{{ route('student.survey.store', $school->survey_code) }}" method="POST" class="space-y-6">
+        <form action="{{ route('student.survey.store', $school->survey_code) }}" method="POST" id="studentSurveyForm" class="space-y-6">
             @csrf
+            <input type="hidden" name="device_token" id="deviceTokenInput" value="">
 
             {{-- IDENTITAS RINGKAS --}}
             <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
@@ -79,11 +111,26 @@
                         </label>
                         <select name="class_grade" required
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                            <option value="">-- Pilih Kelas --</option>
-                            <option value="Kelas X" {{ old('class_grade') == 'Kelas X' ? 'selected' : '' }}>Kelas X (10)</option>
-                            <option value="Kelas XI" {{ old('class_grade') == 'Kelas XI' ? 'selected' : '' }}>Kelas XI (11)</option>
-                            <option value="Kelas XII" {{ old('class_grade') == 'Kelas XII' ? 'selected' : '' }}>Kelas XII (12)</option>
-                            <option value="Lainnya" {{ old('class_grade') == 'Lainnya' ? 'selected' : '' }}>Lainnya</option>
+                            <option value="">-- Pilih Kelas Siswa --</option>
+                            <optgroup label="Tingkat SD / Sederajat (Kelas 1 - 6)">
+                                <option value="Kelas 1 SD" {{ old('class_grade') == 'Kelas 1 SD' ? 'selected' : '' }}>Kelas 1 SD</option>
+                                <option value="Kelas 2 SD" {{ old('class_grade') == 'Kelas 2 SD' ? 'selected' : '' }}>Kelas 2 SD</option>
+                                <option value="Kelas 3 SD" {{ old('class_grade') == 'Kelas 3 SD' ? 'selected' : '' }}>Kelas 3 SD</option>
+                                <option value="Kelas 4 SD" {{ old('class_grade') == 'Kelas 4 SD' ? 'selected' : '' }}>Kelas 4 SD</option>
+                                <option value="Kelas 5 SD" {{ old('class_grade') == 'Kelas 5 SD' ? 'selected' : '' }}>Kelas 5 SD</option>
+                                <option value="Kelas 6 SD" {{ old('class_grade') == 'Kelas 6 SD' ? 'selected' : '' }}>Kelas 6 SD</option>
+                            </optgroup>
+                            <optgroup label="Tingkat SMP / MTs / Sederajat (Kelas 7 - 9)">
+                                <option value="Kelas 7 (1 SMP)" {{ old('class_grade') == 'Kelas 7 (1 SMP)' ? 'selected' : '' }}>Kelas 7 (Kelas 1 SMP / MTs)</option>
+                                <option value="Kelas 8 (2 SMP)" {{ old('class_grade') == 'Kelas 8 (2 SMP)' ? 'selected' : '' }}>Kelas 8 (Kelas 2 SMP / MTs)</option>
+                                <option value="Kelas 9 (3 SMP)" {{ old('class_grade') == 'Kelas 9 (3 SMP)' ? 'selected' : '' }}>Kelas 9 (Kelas 3 SMP / MTs)</option>
+                            </optgroup>
+                            <optgroup label="Tingkat SMA / SMK / MA / Sederajat (Kelas 10 - 12)">
+                                <option value="Kelas 10 (X SMA/SMK)" {{ old('class_grade') == 'Kelas 10 (X SMA/SMK)' ? 'selected' : '' }}>Kelas 10 (X SMA / SMK / MA)</option>
+                                <option value="Kelas 11 (XI SMA/SMK)" {{ old('class_grade') == 'Kelas 11 (XI SMA/SMK)' ? 'selected' : '' }}>Kelas 11 (XI SMA / SMK / MA)</option>
+                                <option value="Kelas 12 (XII SMA/SMK)" {{ old('class_grade') == 'Kelas 12 (XII SMA/SMK)' ? 'selected' : '' }}>Kelas 12 (XII SMA / SMK / MA)</option>
+                            </optgroup>
+                            <option value="Lainnya" {{ old('class_grade') == 'Lainnya' ? 'selected' : '' }}>Tingkat Lainnya</option>
                         </select>
                     </div>
 
@@ -178,7 +225,7 @@
 
             {{-- TOMBOL SUBMIT --}}
             <div class="pt-4 pb-8">
-                <button type="submit"
+                <button type="submit" id="submitSurveyBtn"
                     class="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-blue-500/25 transition-all flex items-center justify-center gap-2">
                     <i class="bi bi-send-fill"></i> Kirim Jawaban Survei
                 </button>
@@ -188,6 +235,125 @@
             </div>
         </form>
     </main>
+
+    <script>
+        (function() {
+            const schoolId = '{{ $school->id }}';
+            const storageTokenKey = 'handal_device_token';
+            let token = localStorage.getItem(storageTokenKey);
+            if (!token) {
+                token = 'dt_' + Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+                try { localStorage.setItem(storageTokenKey, token); } catch(e){}
+            }
+            const tokenInput = document.getElementById('deviceTokenInput');
+            if (tokenInput) tokenInput.value = token;
+
+            const submittedKey = 'survey_submitted_school_' + schoolId;
+            const isSubmittedLocal = localStorage.getItem(submittedKey) === '1';
+            const isSubmittedServer = {{ !empty($hasSubmitted) ? 'true' : 'false' }};
+
+            if (isSubmittedLocal || isSubmittedServer) {
+                const notice = document.getElementById('alreadySubmittedNotice');
+                if (notice) notice.classList.remove('hidden');
+
+                const submitBtn = document.getElementById('submitSurveyBtn');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.className = "w-full py-4 px-6 rounded-2xl bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2 shadow-none border border-slate-300";
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle-fill text-emerald-600"></i> Survei Telah Terkirim dari Perangkat Ini';
+                }
+
+                // Kunci input agar tidak bisa diedit
+                const form = document.getElementById('studentSurveyForm');
+                if (form) {
+                    form.querySelectorAll('input, select').forEach(el => {
+                        if (el.type !== 'hidden') el.disabled = true;
+                    });
+                }
+                return;
+            }
+
+            // ==========================================
+            // AUTO-SAVE DRAFT & AUTO-RESTORE (LOCALSTORAGE)
+            // ==========================================
+            const draftKey = 'handal_survey_draft_school_' + schoolId;
+            const form = document.getElementById('studentSurveyForm');
+
+            // 1. Pulihkan draft jawaban saat halaman dimuat
+            function restoreDraft() {
+                try {
+                    const raw = localStorage.getItem(draftKey);
+                    if (!raw) return;
+                    const saved = JSON.parse(raw);
+                    if (!saved || !form) return;
+
+                    let hasRestored = false;
+
+                    if (saved.class_grade && form.elements['class_grade'] && !form.elements['class_grade'].value) {
+                        form.elements['class_grade'].value = saved.class_grade;
+                        hasRestored = true;
+                    }
+                    if (saved.student_name && form.elements['student_name'] && !form.elements['student_name'].value) {
+                        form.elements['student_name'].value = saved.student_name;
+                        hasRestored = true;
+                    }
+                    if (saved.answers && typeof saved.answers === 'object') {
+                        Object.keys(saved.answers).forEach(qId => {
+                            const val = saved.answers[qId];
+                            const radio = form.querySelector(`input[name="answers[${qId}]"][value="${val}"]`);
+                            if (radio) {
+                                radio.checked = true;
+                                radio.dispatchEvent(new Event('change', { bubbles: true }));
+                                hasRestored = true;
+                            }
+                        });
+                    }
+
+                    if (hasRestored) {
+                        const notice = document.getElementById('draftRestoredNotice');
+                        if (notice) notice.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error('Draft restore failed', e);
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => setTimeout(restoreDraft, 80));
+            } else {
+                setTimeout(restoreDraft, 80);
+            }
+
+            // 2. Simpan setiap perubahan pilihan secara otomatis real-time
+            if (form) {
+                const saveDraft = () => {
+                    const draft = {
+                        class_grade: form.elements['class_grade'] ? form.elements['class_grade'].value : '',
+                        student_name: form.elements['student_name'] ? form.elements['student_name'].value : '',
+                        answers: {}
+                    };
+                    form.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                        const match = radio.name.match(/answers\[(\d+)\]/);
+                        if (match && match[1]) {
+                            draft.answers[match[1]] = radio.value;
+                        }
+                    });
+                    try {
+                        localStorage.setItem(draftKey, JSON.stringify(draft));
+                    } catch (e) {}
+                };
+
+                form.addEventListener('change', saveDraft);
+                form.addEventListener('input', saveDraft);
+
+                // Bersihkan draft saat submit berhasil
+                form.addEventListener('submit', () => {
+                    try { localStorage.removeItem(draftKey); } catch (e) {}
+                });
+            }
+            }
+        })();
+    </script>
 
     {{-- FOOTER SEDERHANA --}}
     <footer class="py-4 text-center text-xs text-slate-400 border-t border-slate-100 bg-white">

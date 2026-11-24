@@ -40,5 +40,12 @@
         </a>
     </div>
 
+    <script>
+        try {
+            localStorage.setItem('survey_submitted_school_{{ $school->id }}', '1');
+            localStorage.removeItem('handal_survey_draft_school_{{ $school->id }}');
+        } catch (e) {}
+    </script>
+
 </body>
 </html>
