@@ -56,6 +56,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile/update', [ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::post('/profile/switch-photo', [ProfileController::class, 'switchPhoto'])->name('profile.switch_photo');
+        Route::delete('/profile/delete-photo', [ProfileController::class, 'deletePhoto'])->name('profile.delete_photo');
 
         // Kontrol Survei Siswa (Buka/Tutup & Generate Ulang Tautan)
         Route::post('/survey-siswa/toggle', [StudentSurveyController::class, 'toggleStatus'])->name('student.survey.toggle');

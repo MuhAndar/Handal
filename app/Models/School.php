@@ -13,6 +13,8 @@ class School extends Model
         'address',
         'jenjang',
         'npsn',
+        'photo',
+        'photo_history',
         'survey_code',
         'is_student_survey_open',
         'self_assessment_score',
@@ -27,6 +29,7 @@ class School extends Model
         'student_survey_score' => 'float',
         'current_score' => 'float',
         'student_respondents_count' => 'integer',
+        'photo_history' => 'array',
     ];
 
     /**
@@ -131,5 +134,73 @@ class School extends Model
         if ($score >= 51) return 'bi-award-fill';
         if ($score >= 31) return 'bi-star-fill';
         return 'bi-exclamation-triangle-fill';
+    }
+
+    /**
+     * URL Foto aktif sekolah (dengan fallback logo default).
+     */
+    public function getPhotoUrlAttribute(): string
+    {
+        if (!empty($this->photo) && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->photo)) {
+            return asset('storage/' . $this->photo);
+        }
+        return asset('img/Handal 8.png');
+    }
+
+    /**
+     * Tambahkan foto baru ke riwayat (maksimal 5 foto terakhir).
+     */
+    public function pushPhotoToHistory(string $path): void
+    {
+        $history = $this->photo_history ?? [];
+        $history = array_values(array_filter($history, fn($item) => $item !== $path));
+        array_unshift($history, $path);
+        $removed = array_slice($history, 5);
+        $history = array_slice($history, 0, 5);
+
+        // Hapus file fisik lama yang gugur dari 5 kuota riwayat
+        foreach ($removed as $oldFile) {
+            if ($oldFile !== $path && \Illuminate\Support\Facades\Storage::disk('public')->exists($oldFile)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($oldFile);
+            }
+        }
+
+        $this->photo = $path;
+        $this->photo_history = $history;
+        $this->save();
+    }
+
+    /**
+     * Ganti foto aktif dengan salah satu foto dari riwayat 5 foto terakhir.
+     */
+    public function setActivePhoto(string $path): bool
+    {
+        $history = $this->photo_history ?? [];
+        if (in_array($path, $history)) {
+            $this->photo = $path;
+            $this->save();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Hapus foto tertentu dari riwayat foto.
+     */
+    public function removePhotoFromHistory(string $path): void
+    {
+        $history = $this->photo_history ?? [];
+        $history = array_values(array_filter($history, fn($item) => $item !== $path));
+
+        if ($this->photo === $path) {
+            $this->photo = $history[0] ?? null;
+        }
+
+        $this->photo_history = $history;
+        $this->save();
+
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+        }
     }
 }

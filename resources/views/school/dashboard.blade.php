@@ -4,9 +4,15 @@
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- HEADER --}}
-        <div class="mb-8">
-            <h1 class="text-3xl font-black text-slate-800 tracking-tight">Halo, {{ Auth::user()->name }}</h1>
-            <p class="text-slate-500 font-medium">Selamat datang di panel evaluasi keamanan digital sekolah.</p>
+        <div class="mb-8 flex items-center gap-4">
+            @if(!empty($school->photo))
+                <img src="{{ $school->photo_url }}" alt="{{ $school->name }}"
+                     class="w-14 h-14 rounded-2xl object-cover border-2 border-slate-200 shadow-sm bg-white flex-shrink-0">
+            @endif
+            <div>
+                <h1 class="text-3xl font-black text-slate-800 tracking-tight">Halo, {{ Auth::user()->name }}</h1>
+                <p class="text-slate-500 font-medium">Selamat datang di panel evaluasi keamanan digital sekolah.</p>
+            </div>
         </div>
 
         {{-- LOGIKA TEMA --}}
