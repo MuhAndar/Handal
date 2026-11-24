@@ -145,11 +145,11 @@ class LandingController extends Controller
     {
         $validated = $request->validate([
             'school_name'    => 'required|string|max:255',
-            'jenjang'        => 'required|in:SMA,SMK,MA',
-            'province'       => 'required|string',
-            'city'           => 'required|string',
-            'district'       => 'required|string',
-            'village'        => 'required|string',
+            'jenjang'        => 'required|string|max:50',
+            'province'       => 'required|string|max:100',
+            'city'           => 'required|string|max:100',
+            'district'       => 'required|string|max:100',
+            'village'        => 'required|string|max:100',
             'address'        => 'required|string',
             'contact_number' => 'required|numeric',
             'email'          => 'required|email|unique:registrations,email',
